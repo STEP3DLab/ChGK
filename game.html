@@ -33,6 +33,7 @@
         </div>
         <div class="field">
           <label for="timer-duration">Длительность (сек)</label>
+          <p class="hint" id="timer-hint">Выберите длительность обсуждения до старта раунда.</p>
           <select id="timer-duration">
             <option value="30">30</option>
             <option value="60" selected>60</option>
@@ -49,9 +50,11 @@
           </div>
           <div class="field">
             <label for="volume">Громкость</label>
-            <input id="volume" type="range" min="0" max="1" step="0.05" value="0.6" />
+            <input id="volume" type="range" min="0" max="1" step="0.05" value="0.6"
+              aria-describedby="volume-hint" />
+            <p id="volume-hint" class="hint">Громкость влияет на все звуки панели.</p>
           </div>
-          <button class="button secondary" id="mute-sound">Mute</button>
+          <button class="button secondary" id="mute-sound">Без звука</button>
         </div>
         <button class="button" id="start-button">Старт раунда</button>
         <div class="divider"></div>

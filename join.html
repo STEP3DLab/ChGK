@@ -25,7 +25,9 @@
         <h2>Введите код сессии</h2>
         <div class="field">
           <label for="session-input">Session ID</label>
-          <input id="session-input" type="text" placeholder="ABC123" />
+          <input id="session-input" type="text" placeholder="ABC123" maxlength="6" autocomplete="off"
+            inputmode="text" aria-describedby="session-hint" />
+          <p id="session-hint" class="hint">Код отображается на экране ведущего.</p>
         </div>
         <p id="join-status" class="subtitle">Ожидаем ввод кода.</p>
       </section>
@@ -34,7 +36,9 @@
         <h2>Роль и команда</h2>
         <div class="field">
           <label for="player-name">Имя</label>
-          <input id="player-name" type="text" placeholder="Ваше имя" />
+          <input id="player-name" type="text" placeholder="Ваше имя" autocomplete="name"
+            aria-describedby="name-hint" />
+          <p id="name-hint" class="hint">Имя будет видно ведущему и команде.</p>
         </div>
         <div class="inline">
           <button class="button" type="button" data-role="captain">Капитан</button>
@@ -46,7 +50,9 @@
         </div>
         <div class="field" id="captain-code-field" hidden>
           <label for="captain-code">Код капитана</label>
-          <input id="captain-code" type="text" placeholder="0000" />
+          <input id="captain-code" type="text" placeholder="0000" inputmode="numeric" maxlength="4"
+            autocomplete="one-time-code" aria-describedby="captain-hint" />
+          <p id="captain-hint" class="hint">Код выдаёт ведущий вместе с названием команды.</p>
         </div>
         <button class="button" id="join-session">Войти в игру</button>
       </section>
