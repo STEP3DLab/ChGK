@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Капитан · Что? Где? Step3D!</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="module" src="js/ui.js" defer></script>
+</head>
+<body data-page="captain">
+  <header class="site-header">
+    <div class="logo">
+      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+      <div>
+        <h1 class="title glitch">Что? Где? Step3D!</h1>
+        <p class="subtitle">Ввод вопросов капитаном</p>
+      </div>
+    </div>
+    <span class="badge" data-status-badge>DEMO</span>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="card">
+        <h2>Ваши вопросы</h2>
+        <p id="captain-status" class="subtitle">Добавляйте вопросы для общего пула.</p>
+        <p>Добавлено: <strong id="question-count">0</strong></p>
+        <form id="question-form" class="list">
+          <div class="field">
+            <label for="question-text">Вопрос</label>
+            <textarea id="question-text" required></textarea>
+          </div>
+          <div class="field">
+            <label for="question-answer">Ответ</label>
+            <input id="question-answer" type="text" required />
+          </div>
+          <div class="field">
+            <label for="question-comment">Комментарий</label>
+            <textarea id="question-comment"></textarea>
+          </div>
+          <button class="button" type="submit">Сохранить вопрос</button>
+        </form>
+        <button class="button secondary" id="ready-button">Готово</button>
+      </section>
+
+      <section class="card">
+        <h2>Список вопросов</h2>
+        <div id="question-list" class="list"></div>
+      </section>
+
+      <section class="card" id="answer-block" hidden>
+        <h2>Ответ на раунд</h2>
+        <p>Раунд активен. Введите ответ команды.</p>
+        <div class="field">
+          <label for="answer-input">Ответ</label>
+          <input id="answer-input" type="text" />
+        </div>
+        <button class="button" id="submit-answer">Отправить ответ</button>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">Step3D · капитан</footer>
+</body>
+</html>

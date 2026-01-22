@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Что? Где? Step3D!</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="vendor/qrcode.min.js" defer></script>
+  <script type="module" src="js/ui.js" defer></script>
+</head>
+<body data-page="index">
+  <header class="site-header">
+    <div class="logo">
+      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+      <div>
+        <h1 class="title glitch">Что? Где? Step3D!</h1>
+        <p class="subtitle">Синхронная игра для команд и ведущего</p>
+      </div>
+    </div>
+    <span class="badge" data-status-badge>DEMO</span>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="grid-2">
+        <article class="card">
+          <h2>Создать игру</h2>
+          <p>Ведущий открывает сессию, задаёт команды и запускает волчок.</p>
+          <button class="button" id="create-session">Создать игру (Ведущий)</button>
+        </article>
+        <article class="card">
+          <h2>Присоединиться</h2>
+          <p>Участники заходят по коду сессии или сканируют QR.</p>
+          <a class="button secondary" href="join.html">Присоединиться (Участник)</a>
+        </article>
+      </section>
+
+      <section class="card" id="session-block" hidden>
+        <h3 class="section-title">Сессия создана</h3>
+        <div class="qr-box">
+          <div id="qr-target" aria-label="QR-код для подключения"></div>
+          <div>
+            <p class="session-code" id="session-code">—</p>
+            <p>
+              <a id="session-link" href="#">Ссылка на подключение</a>
+            </p>
+            <div class="inline">
+              <button class="button" id="copy-link">Скопировать ссылку</button>
+              <a class="button secondary" id="go-host" href="host.html">Перейти в кабинет ведущего</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="section-title">Как это работает</h3>
+        <p>
+          Создайте игру, отправьте QR-код капитанам и участникам, собирайте вопросы и запускайте раунды.
+          Система поддерживает режим DEMO без Firebase.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">Step3D · минималистичный режим для GitHub Pages</footer>
+</body>
+</html>

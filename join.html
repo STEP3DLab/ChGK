@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Подключение · Что? Где? Step3D!</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="module" src="js/ui.js" defer></script>
+</head>
+<body data-page="join">
+  <header class="site-header">
+    <div class="logo">
+      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+      <div>
+        <h1 class="title glitch">Что? Где? Step3D!</h1>
+        <p class="subtitle">Подключение к игре</p>
+      </div>
+    </div>
+    <span class="badge" data-status-badge>DEMO</span>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="card">
+        <h2>Введите код сессии</h2>
+        <div class="field">
+          <label for="session-input">Session ID</label>
+          <input id="session-input" type="text" placeholder="ABC123" />
+        </div>
+        <p id="join-status" class="subtitle">Ожидаем ввод кода.</p>
+      </section>
+
+      <section class="card">
+        <h2>Роль и команда</h2>
+        <div class="field">
+          <label for="player-name">Имя</label>
+          <input id="player-name" type="text" placeholder="Ваше имя" />
+        </div>
+        <div class="inline">
+          <button class="button" type="button" data-role="captain">Капитан</button>
+          <button class="button secondary active" type="button" data-role="player">Участник</button>
+        </div>
+        <div class="field">
+          <label for="team-select">Команда</label>
+          <select id="team-select"></select>
+        </div>
+        <div class="field" id="captain-code-field" hidden>
+          <label for="captain-code">Код капитана</label>
+          <input id="captain-code" type="text" placeholder="0000" />
+        </div>
+        <button class="button" id="join-session">Войти в игру</button>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">Step3D · подключение к сессии</footer>
+</body>
+</html>
