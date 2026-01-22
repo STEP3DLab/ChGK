@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ведущий · Что? Где? Step3D!</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="module" src="js/ui.js" defer></script>
+</head>
+<body data-page="host">
+  <header class="site-header">
+    <div class="logo">
+      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+      <div>
+        <h1 class="title glitch">Что? Где? Step3D!</h1>
+        <p class="subtitle">Кабинет ведущего</p>
+      </div>
+    </div>
+    <span class="badge" data-status-badge>DEMO</span>
+  </header>
+
+  <main>
+    <div class="container">
+      <section class="card">
+        <h2>Настройка команд</h2>
+        <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+        <div class="field">
+          <label for="team-count">Количество команд</label>
+          <input id="team-count" type="number" min="1" value="2" />
+        </div>
+        <div id="team-fields" class="list"></div>
+        <button class="button" id="save-teams">Сохранить команды</button>
+      </section>
+
+      <section class="card">
+        <h2>Команды и коды капитанов</h2>
+        <div id="team-list" class="list"></div>
+        <a class="button" id="open-lobby" href="game.html">Открыть лобби</a>
+      </section>
+
+      <section class="card">
+        <h2>Подключившиеся игроки</h2>
+        <div id="players-list" class="list"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">Step3D · ведущий</footer>
+</body>
+</html>

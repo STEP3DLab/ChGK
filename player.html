@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Игрок · Что? Где? Step3D!</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="module" src="js/ui.js" defer></script>
+</head>
+<body data-page="player">
+  <header class="site-header">
+    <div class="logo">
+      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+      <div>
+        <h1 class="title glitch">Что? Где? Step3D!</h1>
+        <p class="subtitle">Экран игрока</p>
+      </div>
+    </div>
+    <span class="badge" data-status-badge>DEMO</span>
+  </header>
+
+  <main>
+    <div class="container split">
+      <section class="card">
+        <h2>Текущий раунд</h2>
+        <p id="player-status" class="subtitle">Ожидаем подключения.</p>
+        <p class="section-title">Состояние: <span id="round-state">—</span></p>
+        <p class="timer" id="player-timer">—</p>
+        <div class="divider"></div>
+        <p id="player-question">Ожидаем вопрос.</p>
+      </section>
+
+      <section class="card">
+        <h2>Счет</h2>
+        <div id="player-scoreboard" class="scoreboard"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="footer">Step3D · игрок</footer>
+</body>
+</html>
