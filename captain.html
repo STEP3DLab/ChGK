@@ -28,15 +28,19 @@
         <form id="question-form" class="list">
           <div class="field">
             <label for="question-text">Вопрос</label>
-            <textarea id="question-text" required></textarea>
+            <textarea id="question-text" required placeholder="Введите формулировку вопроса"
+              aria-describedby="question-hint"></textarea>
+            <p id="question-hint" class="hint">Короткие и точные формулировки ускоряют игру.</p>
           </div>
           <div class="field">
             <label for="question-answer">Ответ</label>
-            <input id="question-answer" type="text" required />
+            <input id="question-answer" type="text" required placeholder="Правильный ответ"
+              aria-describedby="answer-hint" />
+            <p id="answer-hint" class="hint">Ответ увидит ведущий, игрокам он скрыт.</p>
           </div>
           <div class="field">
             <label for="question-comment">Комментарий</label>
-            <textarea id="question-comment"></textarea>
+            <textarea id="question-comment" placeholder="Факт или пояснение для ведущего"></textarea>
           </div>
           <button class="button" type="submit">Сохранить вопрос</button>
         </form>
