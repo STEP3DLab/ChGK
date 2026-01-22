@@ -31,24 +31,13 @@
       </section>
 
       <section class="card">
-        <h2>Роль и команда</h2>
+        <h2>Экран зрителя</h2>
+        <p class="subtitle">Откройте общий экран, чтобы следить за раундами и счетом.</p>
         <div class="field">
-          <label for="player-name">Имя</label>
-          <input id="player-name" type="text" placeholder="Ваше имя" />
+          <label for="team-select">Команды</label>
+          <select id="team-select" disabled></select>
         </div>
-        <div class="inline">
-          <button class="button" type="button" data-role="captain">Капитан</button>
-          <button class="button secondary active" type="button" data-role="player">Участник</button>
-        </div>
-        <div class="field">
-          <label for="team-select">Команда</label>
-          <select id="team-select"></select>
-        </div>
-        <div class="field" id="captain-code-field" hidden>
-          <label for="captain-code">Код капитана</label>
-          <input id="captain-code" type="text" placeholder="0000" />
-        </div>
-        <button class="button" id="join-session">Войти в игру</button>
+        <button class="button" id="join-session">Открыть экран зрителя</button>
       </section>
     </div>
   </main>

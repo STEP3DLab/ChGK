@@ -23,7 +23,7 @@
     <div class="container">
       <section class="card">
         <h2>Настройка команд</h2>
-        <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+        <p id="host-status" class="subtitle">Шаг 1. Добавьте команды перед стартом игры.</p>
         <div class="field">
           <label for="team-count">Количество команд</label>
           <input id="team-count" type="number" min="1" value="2" />
@@ -33,14 +33,35 @@
       </section>
 
       <section class="card">
-        <h2>Команды и коды капитанов</h2>
+        <h2>Команды</h2>
         <div id="team-list" class="list"></div>
         <a class="button" id="open-lobby" href="game.html">Открыть лобби</a>
       </section>
 
       <section class="card">
-        <h2>Подключившиеся игроки</h2>
-        <div id="players-list" class="list"></div>
+        <h2>Банк вопросов</h2>
+        <p class="subtitle">Шаг 2. Ведущий вводит вопросы и ответы заранее или по ходу игры.</p>
+        <p>Добавлено: <strong id="question-count">0</strong></p>
+        <form id="question-form" class="list">
+          <div class="field">
+            <label for="question-text">Вопрос</label>
+            <textarea id="question-text" required></textarea>
+          </div>
+          <div class="field">
+            <label for="question-answer">Ответ</label>
+            <input id="question-answer" type="text" required />
+          </div>
+          <div class="field">
+            <label for="question-comment">Комментарий</label>
+            <textarea id="question-comment"></textarea>
+          </div>
+          <button class="button" type="submit">Сохранить вопрос</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Список вопросов</h2>
+        <div id="question-list" class="list"></div>
       </section>
     </div>
   </main>

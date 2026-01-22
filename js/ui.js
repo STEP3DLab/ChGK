@@ -9,8 +9,6 @@ import {
   loadLocal,
   setStoredHost,
   getStoredHost,
-  setStoredUser,
-  getStoredUser,
   STORAGE_KEYS,
   formatTime,
   setBadge,
@@ -83,25 +81,6 @@ const renderScoreboard = (container, teams) => {
     row.className = "score-row";
     row.innerHTML = `<span>${team.name}</span><strong>${team.score ?? 0}</strong>`;
     container.append(row);
-  });
-};
-
-const renderPlayersList = (container, players, teams) => {
-  const teamMap = Object.fromEntries(teams.map((team) => [team.id, team.name]));
-  container.innerHTML = "";
-  if (!players.length) {
-    container.innerHTML = "<p>Пока никто не подключился.</p>";
-    return;
-  }
-  players.forEach((player) => {
-    const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `
-      <strong>${player.name || "Без имени"}</strong>
-      <span>${player.role === "captain" ? "Капитан" : "Участник"}</span>
-      <span>${teamMap[player.teamId] || "Без команды"}</span>
-    `;
-    container.append(item);
   });
 };
 
@@ -192,15 +171,12 @@ const initIndex = () => {
 const initJoin = async () => {
   const sessionInput = qs("#session-input");
   const teamSelect = qs("#team-select");
-  const roleButtons = qsa("[data-role]");
-  const captainCodeField = qs("#captain-code-field");
-  const captainCodeInput = qs("#captain-code");
   const joinButton = qs("#join-session");
   const statusText = qs("#join-status");
-  const nameInput = qs("#player-name");
 
   let currentSession = null;
-  let selectedRole = "player";
+
+  if (joinButton) joinButton.disabled = true;
 
   const loadSession = async (sessionId) => {
     if (!sessionId) return;
@@ -209,20 +185,13 @@ const initJoin = async () => {
     if (!session) {
       statusText.textContent = "Сессия не найдена.";
       teamSelect.innerHTML = "";
+      joinButton.disabled = true;
       return;
     }
     statusText.textContent = `Сессия активна. Команд: ${session.teams.length}`;
     renderTeamsOptions(teamSelect, session.teams);
+    joinButton.disabled = false;
   };
-
-  roleButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      roleButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-      selectedRole = button.dataset.role;
-      captainCodeField.hidden = selectedRole !== "captain";
-    });
-  });
 
   joinButton?.addEventListener("click", async () => {
     if (!currentSession) return;
@@ -230,33 +199,8 @@ const initJoin = async () => {
       showToast("Команды еще не созданы", "error");
       return;
     }
-    const teamId = teamSelect.value;
-    const team = currentSession.teams.find((item) => item.id === teamId);
-    if (!team) {
-      showToast("Выберите команду", "error");
-      return;
-    }
-    if (selectedRole === "captain" && captainCodeInput.value.trim() !== team.captainCode) {
-      showToast("Неверный код капитана", "error");
-      return;
-    }
-    const player = {
-      id: createId(8),
-      name: nameInput.value.trim() || "Игрок",
-      teamId,
-      role: selectedRole,
-      joinedAt: Date.now(),
-    };
-
-    await store.updateSession(currentSession.id, (session) => ({
-      ...session,
-      players: [...session.players, player],
-    }));
-
-    setStoredUser({ sessionId: currentSession.id, playerId: player.id, teamId, role: selectedRole });
     saveLocal(STORAGE_KEYS.lastSession, currentSession.id);
-
-    window.location.href = `${getBaseUrl()}${selectedRole === "captain" ? "captain" : "player"}.html?session=${currentSession.id}`;
+    window.location.href = `${getBaseUrl()}player.html?session=${currentSession.id}`;
   });
 
   const presetSession = getSessionIdFromUrl();
@@ -274,7 +218,9 @@ const initHost = async () => {
   const saveTeamsButton = qs("#save-teams");
   const teamList = qs("#team-list");
   const lobbyButton = qs("#open-lobby");
-  const playersList = qs("#players-list");
+  const questionForm = qs("#question-form");
+  const questionList = qs("#question-list");
+  const questionCount = qs("#question-count");
 
   if (!sessionId) {
     statusText.textContent = "Нет активной сессии.";
@@ -300,8 +246,7 @@ const initHost = async () => {
       item.className = "list-item";
       item.innerHTML = `
         <strong>${team.name}</strong>
-        <span>Код капитана: <strong>${team.captainCode}</strong></span>
-        <span class="status-pill">${team.ready ? "Готовы" : "Ожидают"}</span>
+        <span>Очки: <strong>${team.score ?? 0}</strong></span>
       `;
       teamList.append(item);
     });
@@ -344,64 +289,18 @@ const initHost = async () => {
     const teams = names.map((name) => ({
       id: createId(4),
       name,
-      captainCode: String(Math.floor(1000 + Math.random() * 9000)),
       score: 0,
-      ready: false,
     }));
     currentSession = await store.updateSession(sessionId, { teams });
     renderTeams(currentSession.teams);
     showToast("Команды сохранены", "success");
   });
 
-  lobbyButton.href = `${getBaseUrl()}game.html?session=${sessionId}`;
-  renderTeams(currentSession.teams);
-  renderPlayersList(playersList, currentSession.players, currentSession.teams);
-
-  await store.subscribe(sessionId, (session) => {
-    if (!session) return;
-    currentSession = session;
-    renderTeams(session.teams);
-    renderPlayersList(playersList, session.players, session.teams);
-  });
-};
-
-const initCaptain = async () => {
-  const sessionId = await ensureSessionAccess();
-  const user = getStoredUser();
-  const statusText = qs("#captain-status");
-  const questionForm = qs("#question-form");
-  const questionList = qs("#question-list");
-  const questionCount = qs("#question-count");
-  const readyButton = qs("#ready-button");
-  const answerBlock = qs("#answer-block");
-  const answerInput = qs("#answer-input");
-  const answerButton = qs("#submit-answer");
-
-  if (!sessionId || !user || user.role !== "captain") {
-    statusText.textContent = "Нет доступа капитана.";
-    return;
-  }
-
-  let currentSession = await store.getSession(sessionId);
-  if (!currentSession) {
-    statusText.textContent = "Сессия не найдена.";
-    return;
-  }
-
   let editingId = null;
 
   const updateQuestionsView = (session) => {
-    const teamQuestions = session.questions.filter((question) => question.teamId === user.teamId);
-    renderQuestionList(questionList, teamQuestions);
-    questionCount.textContent = String(teamQuestions.length);
-  };
-
-  const setReady = async (ready) => {
-    currentSession = await store.updateSession(sessionId, (session) => ({
-      ...session,
-      teams: session.teams.map((team) => (team.id === user.teamId ? { ...team, ready } : team)),
-    }));
-    readyButton.textContent = ready ? "Снять готовность" : "Готово";
+    renderQuestionList(questionList, session.questions);
+    questionCount.textContent = String(session.questions.length);
   };
 
   questionForm?.addEventListener("submit", async (event) => {
@@ -413,7 +312,7 @@ const initCaptain = async () => {
       showToast("Заполните вопрос и ответ", "error");
       return;
     }
-    const payload = { id: editingId || createId(8), teamId: user.teamId, text, answer, comment, used: false };
+    const payload = { id: editingId || createId(8), text, answer, comment, used: false };
     currentSession = await store.updateSession(sessionId, (session) => {
       const nextQuestions = editingId
         ? session.questions.map((item) => (item.id === editingId ? payload : item))
@@ -448,41 +347,15 @@ const initCaptain = async () => {
     }
   });
 
-  readyButton?.addEventListener("click", () => {
-    const team = currentSession.teams.find((item) => item.id === user.teamId);
-    setReady(!team?.ready);
-  });
-
-  answerButton?.addEventListener("click", async () => {
-    if (!answerInput.value.trim()) {
-      showToast("Введите ответ", "error");
-      return;
-    }
-    currentSession = await store.updateSession(sessionId, (session) => ({
-      ...session,
-      game: {
-        ...session.game,
-        answers: {
-          ...session.game.answers,
-          [user.teamId]: {
-            text: answerInput.value.trim(),
-            submittedAt: Date.now(),
-          },
-        },
-      },
-    }));
-    answerInput.value = "";
-    showToast("Ответ отправлен", "success");
-  });
+  lobbyButton.href = `${getBaseUrl()}game.html?session=${sessionId}`;
+  renderTeams(currentSession.teams);
+  updateQuestionsView(currentSession);
 
   await store.subscribe(sessionId, (session) => {
     if (!session) return;
     currentSession = session;
+    renderTeams(session.teams);
     updateQuestionsView(session);
-    const team = session.teams.find((item) => item.id === user.teamId);
-    readyButton.textContent = team?.ready ? "Снять готовность" : "Готово";
-    const canAnswer = session.game.roundState === "answering";
-    answerBlock.hidden = !canAnswer;
   });
 };
 
@@ -527,6 +400,7 @@ const initGame = async () => {
   const durationSelect = qs("#timer-duration");
   const questionBox = qs("#game-question");
   const answerList = qs("#answer-list");
+  const saveAnswersButton = qs("#save-answers");
   const scoreboard = qs("#game-scoreboard");
   const timerBox = qs("#game-timer");
   const roundState = qs("#game-round-state");
@@ -563,28 +437,37 @@ const initGame = async () => {
     muteButton.textContent = isMuted ? "Unmute" : "Mute";
   });
 
+  const renderAnswerInputs = (session) => {
+    answerList.innerHTML = "";
+    session.teams.forEach((team) => {
+      const row = document.createElement("div");
+      row.className = "list-item";
+      const existing = session.game.answers?.[team.id];
+      row.innerHTML = `
+        <div class="answer-meta">
+          <strong>${team.name}</strong>
+          <span class="status-pill">${existing?.text ? "Есть ответ" : "Нет ответа"}</span>
+        </div>
+        <div class="field">
+          <label for="answer-${team.id}">Ответ</label>
+          <input id="answer-${team.id}" type="text" data-answer-input="${team.id}" value="${existing?.text || ""}" />
+        </div>
+        <div class="inline">
+          <button class="button secondary" data-score="yes" data-team="${team.id}">Засчитать</button>
+          <button class="button ghost" data-score="clear" data-team="${team.id}">Очистить</button>
+        </div>
+      `;
+      answerList.append(row);
+    });
+  };
+
   const updateView = (session) => {
     renderScoreboard(scoreboard, session.teams);
     const question = session.questions.find((q) => q.id === session.game.currentQuestionId);
     renderQuestionForPlayers(questionBox, question);
     roundState.textContent = session.game.roundState;
     updateTimer(timerBox, session.game.timer);
-
-    answerList.innerHTML = "";
-    Object.entries(session.game.answers || {}).forEach(([teamId, answer]) => {
-      const team = session.teams.find((item) => item.id === teamId);
-      const row = document.createElement("div");
-      row.className = "list-item";
-      row.innerHTML = `
-        <strong>${team?.name || "Команда"}</strong>
-        <p>${answer.text}</p>
-        <div class="inline">
-          <button class="button secondary" data-score="yes" data-team="${teamId}">Засчитать</button>
-          <button class="button ghost" data-score="no" data-team="${teamId}">Не засчитать</button>
-        </div>
-      `;
-      answerList.append(row);
-    });
+    renderAnswerInputs(session);
   };
 
   const requireHost = () => {
@@ -665,6 +548,27 @@ const initGame = async () => {
     updateView(currentSession);
   });
 
+  saveAnswersButton?.addEventListener("click", async () => {
+    if (!requireHost()) return;
+    const inputs = qsa("[data-answer-input]", answerList);
+    const nextAnswers = inputs.reduce((acc, input) => {
+      const value = input.value.trim();
+      if (value) {
+        acc[input.dataset.answerInput] = { text: value, submittedAt: Date.now() };
+      }
+      return acc;
+    }, {});
+    currentSession = await store.updateSession(sessionId, (session) => ({
+      ...session,
+      game: {
+        ...session.game,
+        answers: nextAnswers,
+      },
+    }));
+    updateView(currentSession);
+    showToast("Ответы сохранены", "success");
+  });
+
   answerList?.addEventListener("click", async (event) => {
     const button = event.target.closest("button");
     if (!button) return;
@@ -679,6 +583,21 @@ const initGame = async () => {
       }));
       showToast("Очко добавлено", "success");
       updateView(currentSession);
+    }
+    if (button.dataset.score === "clear") {
+      currentSession = await store.updateSession(sessionId, (session) => {
+        const nextAnswers = { ...(session.game.answers || {}) };
+        delete nextAnswers[teamId];
+        return {
+          ...session,
+          game: {
+            ...session.game,
+            answers: nextAnswers,
+          },
+        };
+      });
+      updateView(currentSession);
+      showToast("Ответ очищен", "info");
     }
   });
 
@@ -713,7 +632,6 @@ export const initPage = () => {
   if (page === "index") initIndex();
   if (page === "join") initJoin();
   if (page === "host") initHost();
-  if (page === "captain") initCaptain();
   if (page === "player") initPlayer();
   if (page === "game") initGame();
 };
