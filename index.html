@@ -9,6 +9,7 @@
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="index">
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
   <header class="site-header">
     <div class="logo">
       <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
@@ -17,16 +18,19 @@
         <p class="subtitle">Синхронная игра для команд и ведущего</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <div class="header-actions">
+      <a class="button ghost" href="#how-it-works">Как это работает</a>
+      <span class="badge" data-status-badge>DEMO</span>
+    </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
       <section class="grid-2">
         <article class="card">
           <h2>Создать игру</h2>
           <p>Ведущий открывает сессию, задаёт команды и запускает волчок.</p>
-          <button class="button" id="create-session">Создать игру (Ведущий)</button>
+          <button class="button primary" id="create-session">Создать игру (Ведущий)</button>
           <p class="hint">После создания появится код и ссылка для участников.</p>
         </article>
         <article class="card">
@@ -54,7 +58,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="how-it-works">
         <h3 class="section-title">Как это работает</h3>
         <p>
           Создайте игру, отправьте QR-код капитанам и участникам, собирайте вопросы и запускайте раунды.

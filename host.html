@@ -9,6 +9,7 @@
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="host">
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
   <header class="site-header">
     <div class="logo">
       <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
@@ -17,10 +18,13 @@
         <p class="subtitle">Кабинет ведущего</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <div class="header-actions">
+      <a class="button ghost" href="index.html">На главную</a>
+      <span class="badge" data-status-badge>DEMO</span>
+    </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
       <section class="card">
         <h2>Сессия и подключение</h2>
@@ -58,13 +62,13 @@
           <p id="team-count-hint" class="hint">Оптимально от 2 до 8 команд для удобного счёта.</p>
         </div>
         <div id="team-fields" class="list"></div>
-        <button class="button" id="save-teams">Сохранить команды</button>
+        <button class="button primary" id="save-teams">Сохранить команды</button>
       </section>
 
       <section class="card">
         <h2>Команды и коды капитанов</h2>
         <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
-        <div id="team-list" class="list"></div>
+        <div id="team-list" class="list" data-empty="Команды не созданы."></div>
         <a class="button" id="open-lobby" href="game.html" target="_blank" rel="noopener">
           Открыть экран ведущего на отдельной вкладке
         </a>
@@ -72,7 +76,7 @@
 
       <section class="card">
         <h2>Подключившиеся игроки</h2>
-        <div id="players-list" class="list"></div>
+        <div id="players-list" class="list" data-empty="Пока никто не подключился."></div>
       </section>
 
       <div class="split">
@@ -83,7 +87,7 @@
             <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
           </div>
           <div class="inline">
-            <button class="button" id="spin-button">Запустить волчок</button>
+            <button class="button primary" id="spin-button">Запустить волчок</button>
             <button class="button secondary" id="replay-spin">Переиграть</button>
           </div>
           <div class="field">
@@ -111,7 +115,7 @@
             </div>
             <button class="button secondary" id="mute-sound">Без звука</button>
           </div>
-          <button class="button" id="start-button">Старт раунда</button>
+          <button class="button primary" id="start-button">Старт раунда</button>
           <div class="divider"></div>
           <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
           <p class="timer" id="game-timer">—</p>
@@ -125,10 +129,10 @@
 
         <section class="card">
           <h2>Ответы команд</h2>
-          <div id="answer-list" class="list"></div>
+          <div id="answer-list" class="list" data-empty="Ответов пока нет."></div>
           <div class="divider"></div>
           <h3>Таблица счета</h3>
-          <div id="game-scoreboard" class="scoreboard"></div>
+          <div id="game-scoreboard" class="scoreboard" data-empty="Нет данных по счету."></div>
         </section>
       </div>
     </div>

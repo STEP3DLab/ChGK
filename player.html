@@ -8,6 +8,7 @@
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="player">
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
   <header class="site-header">
     <div class="logo">
       <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
@@ -16,10 +17,13 @@
         <p class="subtitle">Экран игрока</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <div class="header-actions">
+      <a class="button ghost" href="index.html">На главную</a>
+      <span class="badge" data-status-badge>DEMO</span>
+    </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container split">
       <section class="card">
         <h2>Текущий раунд</h2>
@@ -33,7 +37,7 @@
 
       <section class="card">
         <h2>Счет</h2>
-        <div id="player-scoreboard" class="scoreboard"></div>
+        <div id="player-scoreboard" class="scoreboard" data-empty="Ожидаем данные по счету."></div>
       </section>
     </div>
   </main>
