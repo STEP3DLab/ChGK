@@ -18,31 +18,72 @@
         <p class="subtitle">Синхронная игра для команд и ведущего</p>
       </div>
     </div>
-    <div class="header-actions">
-      <a class="button ghost" href="#how-it-works">Как это работает</a>
-      <span class="badge" data-status-badge>DEMO</span>
-    </div>
+
   </header>
 
   <main id="main-content">
     <div class="container">
+      <section class="card">
+        <div class="page-intro">
+          <h2>Добро пожаловать в Step3D</h2>
+          <p>Запускайте синхронную игру «Что? Где? Когда?» для ведущего и команд в один клик.</p>
+        </div>
+        <div class="stepper">
+          <div class="step">
+            <span class="step-label">Шаг 1</span>
+            <span class="step-title">Создайте сессию</span>
+            <span class="hint">Получите код и ссылку.</span>
+          </div>
+          <div class="step">
+            <span class="step-label">Шаг 2</span>
+            <span class="step-title">Подключите команды</span>
+            <span class="hint">Капитаны добавят вопросы.</span>
+          </div>
+          <div class="step">
+            <span class="step-label">Шаг 3</span>
+            <span class="step-title">Запускайте раунды</span>
+            <span class="hint">Следите за таймером и счетом.</span>
+          </div>
+        </div>
+      </section>
       <section class="grid-2">
         <article class="card">
-          <h2>Создать игру</h2>
+          <div class="card-header">
+            <div>
+              <h2>Создать игру</h2>
+              <p class="meta">Для ведущего и режиссуры игры</p>
+            </div>
+            <span class="status-pill info">Новый запуск</span>
+          </div>
           <p>Ведущий открывает сессию, задаёт команды и запускает волчок.</p>
+
           <button class="button primary" id="create-session">Создать игру (Ведущий)</button>
           <p class="hint">После создания появится код и ссылка для участников.</p>
         </article>
         <article class="card">
-          <h2>Присоединиться</h2>
+          <div class="card-header">
+            <div>
+              <h2>Присоединиться</h2>
+              <p class="meta">Для капитанов и участников</p>
+            </div>
+            <span class="status-pill success">Доступно</span>
+          </div>
           <p>Участники заходят по коду сессии или сканируют QR.</p>
+          <ul class="helper-list">
+            <li>Капитаны отправляют вопросы.</li>
+            <li>Игроки видят таймер и счет.</li>
+            <li>Можно открыть вкладку «Экран для зала».</li>
+          </ul>
           <a class="button secondary" href="join.html">Присоединиться (Участник)</a>
           <p class="hint">Подойдёт как телефон, так и настольный компьютер.</p>
         </article>
       </section>
 
       <section class="card" id="session-block" hidden>
-        <h3 class="section-title">Сессия создана</h3>
+        <div class="card-header">
+          <h3 class="section-title">Сессия создана</h3>
+          <span class="status-pill success">Готово</span>
+        </div>
         <div class="qr-box">
           <div id="qr-target" aria-label="QR-код для подключения"></div>
           <div>
@@ -54,16 +95,39 @@
               <button class="button" id="copy-link">Скопировать ссылку</button>
               <a class="button secondary" id="go-host" href="host.html">Перейти в кабинет ведущего</a>
             </div>
+            <p class="hint">Совет: отправьте ссылку капитанам и включите «Экран для зала».</p>
           </div>
         </div>
       </section>
 
       <section class="card" id="how-it-works">
         <h3 class="section-title">Как это работает</h3>
-        <p>
-          Создайте игру, отправьте QR-код капитанам и участникам, собирайте вопросы и запускайте раунды.
-          Система поддерживает режим DEMO без Firebase.
-        </p>
+        <ul class="steps">
+          <li>
+            <span class="step-number">1</span>
+            <div>
+              <strong>Сессия и команды.</strong>
+              <p class="hint">Создайте игру и задайте состав команд.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <div>
+              <strong>Вопросы от капитанов.</strong>
+              <p class="hint">Капитаны загружают вопросы и ответы.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <div>
+              <strong>Раунд и счет.</strong>
+              <p class="hint">Ведущий запускает волчок и фиксирует ответ.</p>
+            </div>
+          </li>
+        </ul>
+        <div class="callout">
+          Вся игра работает в браузере. Для DEMO не требуется Firebase и регистрация.
+        </div>
       </section>
     </div>
   </main>

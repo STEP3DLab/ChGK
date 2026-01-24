@@ -70,7 +70,17 @@ export const formatTime = (seconds) => {
 
 export const setBadge = (text) => {
   const badge = qs("[data-status-badge]");
-  if (badge) badge.textContent = text;
+  if (!badge) return;
+  const dot = badge.querySelector(".status-dot");
+  if (dot) {
+    badge.textContent = "";
+    badge.append(dot);
+    const label = document.createElement("span");
+    label.textContent = text;
+    badge.append(label);
+    return;
+  }
+  badge.textContent = text;
 };
 
 export const showToast = (message, tone = "info") => {

@@ -98,7 +98,9 @@ const renderPlayersList = (container, players, teams) => {
     item.className = "list-item";
     item.innerHTML = `
       <strong>${player.name || "Без имени"}</strong>
-      <span>${player.role === "captain" ? "Капитан" : "Участник"}</span>
+      <span class="status-pill ${player.role === "captain" ? "info" : "success"}">
+        ${player.role === "captain" ? "Капитан" : "Участник"}
+      </span>
       <span>${teamMap[player.teamId] || "Без команды"}</span>
     `;
     container.append(item);
@@ -118,7 +120,9 @@ const renderQuestionList = (container, questions) => {
     item.innerHTML = `
       <strong>${question.text.slice(0, 80)}</strong>
       <span>Ответ: ${question.answer || "—"}</span>
-      <span class="status-pill">${question.used ? "Сыгран" : "В пуле"}</span>
+      <span class="status-pill ${question.used ? "warning" : "success"}">
+        ${question.used ? "Сыгран" : "В пуле"}
+      </span>
       <div class="inline">
         <button class="button secondary" data-action="edit">Редактировать</button>
         <button class="button ghost" data-action="delete">Удалить</button>
@@ -198,6 +202,7 @@ const initJoin = async () => {
   const joinButton = qs("#join-session");
   const statusText = qs("#join-status");
   const nameInput = qs("#player-name");
+  const clearButton = qs("#clear-session");
 
   let currentSession = null;
   let selectedRole = "player";
@@ -218,10 +223,18 @@ const initJoin = async () => {
   roleButtons.forEach((button) => {
     button.addEventListener("click", () => {
       roleButtons.forEach((btn) => btn.classList.remove("active"));
+      roleButtons.forEach((btn) => btn.setAttribute("aria-pressed", "false"));
       button.classList.add("active");
+      button.setAttribute("aria-pressed", "true");
       selectedRole = button.dataset.role;
       captainCodeField.hidden = selectedRole !== "captain";
     });
+  });
+
+  clearButton?.addEventListener("click", () => {
+    sessionInput.value = "";
+    statusText.textContent = "Ожидаем ввод кода.";
+    teamSelect.innerHTML = "";
   });
 
   joinButton?.addEventListener("click", async () => {
@@ -283,6 +296,11 @@ const initHost = async () => {
   const teamList = qs("#team-list");
   const lobbyButton = qs("#open-lobby");
   const playersList = qs("#players-list");
+  const teamCountStat = qs("#host-team-count");
+  const readyCountStat = qs("#host-ready-count");
+  const questionCountStat = qs("#host-question-count");
+  const playerCountStat = qs("#host-player-count");
+  const readyProgress = qs("#host-ready-progress");
 
   let currentSession = null;
   const hostData = getStoredHost();
@@ -344,10 +362,28 @@ const initHost = async () => {
       item.innerHTML = `
         <strong>${team.name}</strong>
         <span>Код капитана: <strong>${team.captainCode}</strong></span>
-        <span class="status-pill">${team.ready ? "Готовы" : "Ожидают"}</span>
+        <span class="status-pill ${team.ready ? "success" : "warning"}">
+          ${team.ready ? "Готовы" : "Ожидают"}
+        </span>
       `;
       teamList.append(item);
     });
+  };
+
+  const updateStats = (session) => {
+    if (!session) return;
+    const totalTeams = session.teams.length;
+    const readyTeams = session.teams.filter((team) => team.ready).length;
+    const playerCount = session.players.length;
+    const questionCount = session.questions.length;
+    if (teamCountStat) teamCountStat.textContent = String(totalTeams);
+    if (readyCountStat) readyCountStat.textContent = String(readyTeams);
+    if (playerCountStat) playerCountStat.textContent = String(playerCount);
+    if (questionCountStat) questionCountStat.textContent = String(questionCount);
+    if (readyProgress) {
+      const progress = totalTeams ? Math.round((readyTeams / totalTeams) * 100) : 0;
+      readyProgress.style.width = `${progress}%`;
+    }
   };
 
   const renderFields = (count) => {
@@ -400,12 +436,14 @@ const initHost = async () => {
   lobbyButton.href = `${getBaseUrl()}game.html?session=${sessionId}`;
   renderTeams(currentSession.teams);
   renderPlayersList(playersList, currentSession.players, currentSession.teams);
+  updateStats(currentSession);
 
   await store.subscribe(sessionId, (session) => {
     if (!session) return;
     currentSession = session;
     renderTeams(session.teams);
     renderPlayersList(playersList, session.players, session.teams);
+    updateStats(session);
   });
 };
 
@@ -576,6 +614,7 @@ const initGame = async () => {
   const roundState = qs("#game-round-state");
   const volumeControl = qs("#volume");
   const muteButton = qs("#mute-sound");
+  const answerCount = qs("#answer-count");
 
   if (!sessionId) {
     statusText.textContent = "Нет активной сессии.";
@@ -604,7 +643,8 @@ const initGame = async () => {
   muteButton?.addEventListener("click", () => {
     isMuted = !isMuted;
     soundboard.mute(isMuted);
-    muteButton.textContent = isMuted ? "Unmute" : "Mute";
+    muteButton.textContent = isMuted ? "Со звуком" : "Без звука";
+    muteButton.setAttribute("aria-pressed", String(isMuted));
   });
 
   const updateView = (session) => {
@@ -615,7 +655,9 @@ const initGame = async () => {
     updateTimer(timerBox, session.game.timer);
 
     answerList.innerHTML = "";
-    Object.entries(session.game.answers || {}).forEach(([teamId, answer]) => {
+    const answers = Object.entries(session.game.answers || {});
+    if (answerCount) answerCount.textContent = `Ответов: ${answers.length}`;
+    answers.forEach(([teamId, answer]) => {
       const team = session.teams.find((item) => item.id === teamId);
       const row = document.createElement("div");
       row.className = "list-item";

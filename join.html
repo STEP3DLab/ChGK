@@ -17,27 +17,54 @@
         <p class="subtitle">Подключение к игре</p>
       </div>
     </div>
-    <div class="header-actions">
-      <a class="button ghost" href="index.html">На главную</a>
-      <span class="badge" data-status-badge>DEMO</span>
-    </div>
+
   </header>
 
   <main id="main-content">
     <div class="container">
       <section class="card">
-        <h2>Введите код сессии</h2>
+        <div class="card-header">
+          <h2>Введите код сессии</h2>
+          <span class="status-pill info">Шаг 1</span>
+        </div>
+        <div class="stepper">
+          <div class="step">
+            <span class="step-label">Код</span>
+            <span class="step-title">Подключение</span>
+            <span class="hint">Впишите 6 символов.</span>
+          </div>
+          <div class="step">
+            <span class="step-label">Роль</span>
+            <span class="step-title">Капитан или игрок</span>
+            <span class="hint">Выбор влияет на доступ.</span>
+          </div>
+          <div class="step">
+            <span class="step-label">Команда</span>
+            <span class="step-title">Выбор команды</span>
+            <span class="hint">Только из списка.</span>
+          </div>
+        </div>
         <div class="field">
           <label for="session-input">Session ID</label>
-          <input id="session-input" type="text" placeholder="ABC123" maxlength="6" autocomplete="off"
-            inputmode="text" aria-describedby="session-hint" />
+          <div class="input-group">
+            <input id="session-input" type="text" placeholder="ABC123" maxlength="6" autocomplete="off"
+              inputmode="text" aria-describedby="session-hint" />
+            <button class="button secondary" type="button" id="clear-session">Очистить</button>
+          </div>
           <p id="session-hint" class="hint">Код отображается на экране ведущего.</p>
         </div>
         <p id="join-status" class="subtitle">Ожидаем ввод кода.</p>
+        <div class="tag-row">
+          <span class="tag">Подключение до 2 секунд</span>
+          <span class="tag">Работает в мобильном браузере</span>
+        </div>
       </section>
 
       <section class="card">
-        <h2>Роль и команда</h2>
+        <div class="card-header">
+          <h2>Роль и команда</h2>
+          <span class="status-pill info">Шаг 2</span>
+        </div>
         <div class="field">
           <label for="player-name">Имя</label>
           <input id="player-name" type="text" placeholder="Ваше имя" autocomplete="name"
@@ -45,8 +72,8 @@
           <p id="name-hint" class="hint">Имя будет видно ведущему и команде.</p>
         </div>
         <div class="inline">
-          <button class="button" type="button" data-role="captain">Капитан</button>
-          <button class="button secondary active" type="button" data-role="player">Участник</button>
+          <button class="button" type="button" data-role="captain" aria-pressed="false">Капитан</button>
+          <button class="button secondary active" type="button" data-role="player" aria-pressed="true">Участник</button>
         </div>
         <div class="field">
           <label for="team-select">Команда</label>
@@ -59,7 +86,7 @@
           <p id="captain-hint" class="hint">Код выдаёт ведущий вместе с названием команды.</p>
         </div>
         <button class="button primary" id="join-session">Войти в игру</button>
-      </section>
+
     </div>
   </main>
 
