@@ -18,17 +18,19 @@
         <p class="subtitle">Кабинет ведущего</p>
       </div>
     </div>
-    <div class="header-actions">
-      <a class="button ghost" href="index.html">На главную</a>
-      <span class="badge" data-status-badge>DEMO</span>
-    </div>
+
   </header>
 
   <main id="main-content">
     <div class="container">
       <section class="card">
-        <h2>Сессия и подключение</h2>
-        <p id="host-session-status" class="subtitle">Создайте или выберите активную сессию.</p>
+        <div class="card-header">
+          <div>
+            <h2>Сессия и подключение</h2>
+            <p id="host-session-status" class="subtitle">Создайте или выберите активную сессию.</p>
+          </div>
+          <span class="status-pill info">Шаг 1</span>
+        </div>
         <div class="qr-box">
           <div id="host-qr-target" aria-label="QR-код для подключения"></div>
           <div>
@@ -48,13 +50,19 @@
                 Экран для зала
               </a>
             </div>
+            <p class="hint">Подключите капитанов, чтобы собрать вопросы.</p>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <h2>Настройка команд</h2>
-        <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+        <div class="card-header">
+          <div>
+            <h2>Настройка команд</h2>
+            <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+          </div>
+          <span class="status-pill info">Шаг 2</span>
+        </div>
         <div class="field">
           <label for="team-count">Количество команд</label>
           <input id="team-count" type="number" min="1" max="12" step="1" value="2"
@@ -66,22 +74,15 @@
       </section>
 
       <section class="card">
-        <h2>Команды и коды капитанов</h2>
-        <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
-        <div id="team-list" class="list" data-empty="Команды не созданы."></div>
-        <a class="button" id="open-lobby" href="game.html" target="_blank" rel="noopener">
-          Открыть экран ведущего на отдельной вкладке
-        </a>
-      </section>
 
-      <section class="card">
-        <h2>Подключившиеся игроки</h2>
-        <div id="players-list" class="list" data-empty="Пока никто не подключился."></div>
       </section>
 
       <div class="split">
         <section class="card">
-          <h2>Волчок и раунд</h2>
+          <div class="card-header">
+            <h2>Волчок и раунд</h2>
+            <span class="status-pill warning">Раунд</span>
+          </div>
           <p id="game-status" class="subtitle">Готовы к запуску.</p>
           <div class="wheel-wrapper">
             <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
@@ -113,11 +114,14 @@
                 aria-describedby="volume-hint" />
               <p id="volume-hint" class="hint">Громкость влияет на все звуки панели.</p>
             </div>
-            <button class="button secondary" id="mute-sound">Без звука</button>
+            <button class="button secondary" id="mute-sound" aria-pressed="false">Без звука</button>
           </div>
           <button class="button primary" id="start-button">Старт раунда</button>
           <div class="divider"></div>
-          <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+          <div class="inline space-between">
+            <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+            <span class="pill" id="answer-count">Ответов: 0</span>
+          </div>
           <p class="timer" id="game-timer">—</p>
           <div class="progress" id="game-timer-progress" aria-hidden="true">
             <div class="progress-bar"></div>
@@ -140,8 +144,7 @@
         </section>
 
         <section class="card">
-          <h2>Ответы команд</h2>
-          <div id="answer-list" class="list" data-empty="Ответов пока нет."></div>
+
           <div class="divider"></div>
           <h3>Таблица счета</h3>
           <div id="game-scoreboard" class="scoreboard" data-empty="Нет данных по счету."></div>

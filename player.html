@@ -17,16 +17,16 @@
         <p class="subtitle">Экран игрока</p>
       </div>
     </div>
-    <div class="header-actions">
-      <a class="button ghost" href="index.html">На главную</a>
-      <span class="badge" data-status-badge>DEMO</span>
-    </div>
+
   </header>
 
   <main id="main-content">
     <div class="container split">
       <section class="card">
-        <h2>Текущий раунд</h2>
+        <div class="card-header">
+          <h2>Текущий раунд</h2>
+          <span class="status-pill info">Live</span>
+        </div>
         <p id="player-status" class="subtitle">Ожидаем подключения.</p>
         <p class="hint">Следите за таймером и текущим вопросом.</p>
         <p class="section-title">Состояние: <span id="round-state">—</span></p>
@@ -36,16 +36,11 @@
         </div>
         <div class="divider"></div>
         <p id="player-question">Ожидаем вопрос.</p>
-        <div class="answer-reveal" id="player-answer-reveal" hidden>
-          <span class="section-title">Правильный ответ</span>
-          <strong id="player-correct-answer">—</strong>
-          <p class="hint" id="player-answer-comment"></p>
-        </div>
+
       </section>
 
       <section class="card">
-        <h2>Счет</h2>
-        <div id="player-scoreboard" class="scoreboard" data-empty="Ожидаем данные по счету."></div>
+
       </section>
     </div>
   </main>

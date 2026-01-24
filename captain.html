@@ -17,18 +17,28 @@
         <p class="subtitle">Ввод вопросов капитаном</p>
       </div>
     </div>
-    <div class="header-actions">
-      <a class="button ghost" href="index.html">На главную</a>
-      <span class="badge" data-status-badge>DEMO</span>
-    </div>
+
   </header>
 
   <main id="main-content">
     <div class="container">
       <section class="card">
-        <h2>Ваши вопросы</h2>
-        <p id="captain-status" class="subtitle">Добавляйте вопросы для общего пула.</p>
-        <p>Добавлено: <strong id="question-count">0</strong></p>
+        <div class="card-header">
+          <div>
+            <h2>Ваши вопросы</h2>
+            <p id="captain-status" class="subtitle">Добавляйте вопросы для общего пула.</p>
+          </div>
+          <span class="status-pill info">Шаг 1</span>
+        </div>
+        <div class="inline">
+          <span class="pill">Добавлено: <strong id="question-count">0</strong></span>
+          <span class="pill">Синхронизация live</span>
+        </div>
+        <ul class="helper-list">
+          <li>Формулируйте вопрос в 1-2 предложения.</li>
+          <li>Ответ — короткий и точный.</li>
+          <li>Комментарий увидит только ведущий.</li>
+        </ul>
         <form id="question-form" class="list">
           <div class="field">
             <label for="question-text">Вопрос</label>
@@ -52,12 +62,14 @@
       </section>
 
       <section class="card">
-        <h2>Список вопросов</h2>
-        <div id="question-list" class="list" data-empty="Вопросов пока нет."></div>
+
       </section>
 
       <section class="card" id="answer-block" hidden>
-        <h2>Ответ на раунд</h2>
+        <div class="card-header">
+          <h2>Ответ на раунд</h2>
+          <span class="status-pill warning">Live</span>
+        </div>
         <p>Раунд активен. Введите ответ команды.</p>
         <p class="section-title">Состояние: <span id="captain-round-state">—</span></p>
         <p class="timer" id="captain-timer">—</p>
