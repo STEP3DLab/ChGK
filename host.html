@@ -9,6 +9,7 @@
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="host">
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
   <header class="site-header">
     <div class="logo">
       <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
@@ -17,10 +18,10 @@
         <p class="subtitle">Кабинет ведущего</p>
       </div>
     </div>
-    <span class="badge" data-status-badge><span class="status-dot"></span>DEMO</span>
+
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
       <section class="card">
         <div class="card-header">
@@ -73,49 +74,7 @@
       </section>
 
       <section class="card">
-        <div class="card-header">
-          <div>
-            <h2>Команды и коды капитанов</h2>
-            <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
-          </div>
-          <span class="status-pill info">Шаг 3</span>
-        </div>
-        <div class="stat-grid">
-          <div class="stat-card">
-            <strong id="host-team-count">0</strong>
-            <span>Команд создано</span>
-          </div>
-          <div class="stat-card">
-            <strong id="host-ready-count">0</strong>
-            <span>Команд готовы</span>
-          </div>
-          <div class="stat-card">
-            <strong id="host-question-count">0</strong>
-            <span>Вопросов в пуле</span>
-          </div>
-          <div class="stat-card">
-            <strong id="host-player-count">0</strong>
-            <span>Игроков подключено</span>
-          </div>
-        </div>
-        <div class="field">
-          <label>Готовность команд</label>
-          <div class="progress" aria-hidden="true">
-            <div class="progress-bar" id="host-ready-progress"></div>
-          </div>
-        </div>
-        <div id="team-list" class="list"></div>
-        <a class="button" id="open-lobby" href="game.html" target="_blank" rel="noopener">
-          Открыть экран ведущего на отдельной вкладке
-        </a>
-      </section>
 
-      <section class="card">
-        <div class="card-header">
-          <h2>Подключившиеся игроки</h2>
-          <span class="inline-badge">Live</span>
-        </div>
-        <div id="players-list" class="list"></div>
       </section>
 
       <div class="split">
@@ -129,7 +88,7 @@
             <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
           </div>
           <div class="inline">
-            <button class="button" id="spin-button">Запустить волчок</button>
+            <button class="button primary" id="spin-button">Запустить волчок</button>
             <button class="button secondary" id="replay-spin">Переиграть</button>
           </div>
           <div class="field">
@@ -173,14 +132,10 @@
         </section>
 
         <section class="card">
-          <div class="card-header">
-            <h2>Ответы команд</h2>
-            <span class="status-pill info">Live</span>
-          </div>
-          <div id="answer-list" class="list"></div>
+
           <div class="divider"></div>
           <h3>Таблица счета</h3>
-          <div id="game-scoreboard" class="scoreboard"></div>
+          <div id="game-scoreboard" class="scoreboard" data-empty="Нет данных по счету."></div>
         </section>
       </div>
     </div>
