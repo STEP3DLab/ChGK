@@ -8,6 +8,7 @@
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="join">
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
   <header class="site-header">
     <div class="logo">
       <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
@@ -16,10 +17,13 @@
         <p class="subtitle">Подключение к игре</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <div class="header-actions">
+      <a class="button ghost" href="index.html">На главную</a>
+      <span class="badge" data-status-badge>DEMO</span>
+    </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="container">
       <section class="card">
         <h2>Введите код сессии</h2>
@@ -54,7 +58,7 @@
             autocomplete="one-time-code" aria-describedby="captain-hint" />
           <p id="captain-hint" class="hint">Код выдаёт ведущий вместе с названием команды.</p>
         </div>
-        <button class="button" id="join-session">Войти в игру</button>
+        <button class="button primary" id="join-session">Войти в игру</button>
       </section>
     </div>
   </main>

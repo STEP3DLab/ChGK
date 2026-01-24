@@ -90,7 +90,7 @@ const renderPlayersList = (container, players, teams) => {
   const teamMap = Object.fromEntries(teams.map((team) => [team.id, team.name]));
   container.innerHTML = "";
   if (!players.length) {
-    container.innerHTML = "<p>Пока никто не подключился.</p>";
+    container.innerHTML = "<p class=\"empty-state\">Пока никто не подключился.</p>";
     return;
   }
   players.forEach((player) => {
@@ -108,7 +108,7 @@ const renderPlayersList = (container, players, teams) => {
 const renderQuestionList = (container, questions) => {
   container.innerHTML = "";
   if (!questions.length) {
-    container.innerHTML = "<p>Вопросов нет. Добавьте первый.</p>";
+    container.innerHTML = "<p class=\"empty-state\">Вопросов нет. Добавьте первый.</p>";
     return;
   }
   questions.forEach((question) => {
@@ -335,7 +335,7 @@ const initHost = async () => {
   const renderTeams = (teams) => {
     teamList.innerHTML = "";
     if (!teams.length) {
-      teamList.innerHTML = "<p>Команды не созданы.</p>";
+      teamList.innerHTML = "<p class=\"empty-state\">Команды не созданы.</p>";
       return;
     }
     teams.forEach((team) => {
