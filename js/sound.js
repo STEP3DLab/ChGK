@@ -15,11 +15,17 @@ export const createSoundboard = () => {
   });
 
   return {
-    play(name) {
+    // Returns boolean to signal autoplay success/failure to the UI layer.
+    async play(name) {
       const sound = audio[name];
-      if (!sound) return;
+      if (!sound) return false;
       sound.currentTime = 0;
-      sound.play().catch(() => {});
+      try {
+        await sound.play();
+        return true;
+      } catch (error) {
+        return false;
+      }
     },
     setVolume(value) {
       Object.values(audio).forEach((sound) => {

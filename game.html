@@ -20,7 +20,17 @@
         <p class="subtitle">Экран ведущего</p>
       </div>
     </div>
-
+    <div class="header-actions">
+      <div class="mode-banner" role="status" aria-live="polite">
+        <span class="status-dot"></span>
+        Режим ведущего
+      </div>
+      <button class="button ghost" type="button" data-modal-open="host-help">Справка</button>
+      <div class="badge" data-status-badge>
+        <span class="status-dot"></span>
+        <span>DEMO (Offline)</span>
+      </div>
+    </div>
   </header>
 
   <main id="main-content">
@@ -30,13 +40,28 @@
           <h2>Волчок и раунд</h2>
           <span class="status-pill warning">Раунд</span>
         </div>
-        <p id="game-status" class="subtitle">Готовы к запуску.</p>
+        <p id="game-status" class="subtitle" aria-live="polite">Готовы к запуску.</p>
+        <!-- Sticky action bar: key controls always within reach. -->
+        <div class="action-bar" role="region" aria-label="Быстрые действия ведущего">
+          <div class="action-row">
+            <button class="button primary cta has-tooltip" id="spin-button" data-tooltip="Выбрать вопрос">
+              Запустить волчок
+            </button>
+            <button class="button secondary has-tooltip" id="replay-spin" data-tooltip="Сбросить выбор">
+              Переиграть
+            </button>
+          </div>
+          <div class="action-row">
+            <button class="button primary cta has-tooltip" id="start-button" data-tooltip="Запустить таймер">
+              Старт раунда
+            </button>
+            <button class="button secondary" id="next-round">Следующий раунд</button>
+            <button class="button ghost" id="export-json">Экспорт результатов</button>
+          </div>
+          <p class="hint inline-hint">Подсказка: сначала выберите вопрос, затем запускайте таймер.</p>
+        </div>
         <div class="wheel-wrapper">
           <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
-        </div>
-        <div class="inline">
-          <button class="button primary" id="spin-button">Запустить волчок</button>
-          <button class="button secondary" id="replay-spin">Переиграть</button>
         </div>
         <div class="field">
           <label for="timer-duration">Длительность (сек)</label>
@@ -47,8 +72,26 @@
             <option value="90">90</option>
           </select>
         </div>
+        <div class="soundboard soundboard--quick">
+          <p class="section-title">Быстрые звуки</p>
+          <div class="sound-grid">
+            <button class="button ghost sound-button" data-sound="gong" data-hotkey="1" aria-keyshortcuts="1">
+              Гонг <span class="hotkey">1</span>
+            </button>
+            <button class="button ghost sound-button" data-sound="spin" data-hotkey="2" aria-keyshortcuts="2">
+              Волчок <span class="hotkey">2</span>
+            </button>
+            <button class="button ghost sound-button" data-sound="tick" data-hotkey="3" aria-keyshortcuts="3">
+              Таймер <span class="hotkey">3</span>
+            </button>
+            <button class="button ghost sound-button" data-sound="end" data-hotkey="4" aria-keyshortcuts="4">
+              Конец <span class="hotkey">4</span>
+            </button>
+          </div>
+          <p class="hint inline-hint">Горячие клавиши работают, если фокус не в поле ввода.</p>
+        </div>
         <div class="soundboard">
-          <p class="section-title">Звуки</p>
+          <p class="section-title">Звуки и громкость</p>
           <div class="inline">
             <button class="button ghost" data-sound="gong">Гонг</button>
             <button class="button ghost" data-sound="spin">Волчок</button>
@@ -63,7 +106,6 @@
           </div>
           <button class="button secondary" id="mute-sound" aria-pressed="false">Без звука</button>
         </div>
-        <button class="button primary" id="start-button">Старт раунда</button>
         <div class="divider"></div>
         <div class="inline space-between">
           <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
@@ -84,22 +126,49 @@
           <button class="button secondary" id="reveal-answer">Показать ответ</button>
           <button class="button ghost" id="hide-answer">Скрыть ответ</button>
         </div>
-        <div class="inline">
-          <button class="button secondary" id="next-round">Следующий раунд</button>
-          <button class="button ghost" id="export-json">Экспорт результатов</button>
-        </div>
+        <div class="divider"></div>
+        <h3 class="section-title">Ответы команд</h3>
+        <div id="answer-list" class="list" data-empty="Ответов пока нет."></div>
       </section>
 
       <section class="card">
-
+        <div class="card-header">
+          <div>
+            <h2>Таблица счета</h2>
+            <p class="subtitle">Очки добавляются после зачета ответов.</p>
+          </div>
+          <span class="status-pill info">Live</span>
+        </div>
         <div class="divider"></div>
-        <h3>Таблица счета</h3>
         <div id="game-scoreboard" class="scoreboard" data-empty="Нет данных по счету."></div>
       </section>
     </div>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Accessible modal: help + hotkeys for the host. -->
+  <div class="modal" data-modal="host-help" role="dialog" aria-modal="true" aria-labelledby="host-help-title"
+    aria-hidden="true">
+    <div class="modal__dialog" role="document">
+      <div class="modal__header">
+        <h2 class="modal__title" id="host-help-title">Справка ведущего</h2>
+        <button class="button ghost" type="button" data-modal-close>Закрыть</button>
+      </div>
+      <div class="modal__body">
+        <p>Быстрый сценарий: выберите вопрос волчком → запустите таймер → получите ответы → зачтите очки.</p>
+        <div class="tag-row">
+          <span class="tag">1 · Гонг</span>
+          <span class="tag">2 · Волчок</span>
+          <span class="tag">3 · Таймер</span>
+          <span class="tag">4 · Конец</span>
+        </div>
+        <p class="hint">Звуки могут быть заблокированы браузером — нажмите любую кнопку для активации аудио.</p>
+      </div>
+      <div class="modal__footer">
+        <button class="button primary" type="button" data-modal-close>Понятно</button>
+      </div>
+    </div>
+  </div>
   <footer class="footer">Step3D · игра</footer>
 </body>
 </html>

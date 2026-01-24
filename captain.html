@@ -20,7 +20,16 @@
         <p class="subtitle">Ввод вопросов капитаном</p>
       </div>
     </div>
-
+    <div class="header-actions">
+      <div class="mode-banner" role="status" aria-live="polite">
+        <span class="status-dot"></span>
+        Режим капитана
+      </div>
+      <div class="badge" data-status-badge>
+        <span class="status-dot"></span>
+        <span>DEMO (Offline)</span>
+      </div>
+    </div>
   </header>
 
   <main id="main-content">
@@ -29,7 +38,7 @@
         <div class="card-header">
           <div>
             <h2>Ваши вопросы</h2>
-            <p id="captain-status" class="subtitle">Добавляйте вопросы для общего пула.</p>
+            <p id="captain-status" class="subtitle" aria-live="polite">Добавляйте вопросы для общего пула.</p>
           </div>
           <span class="status-pill info">Шаг 1</span>
         </div>
@@ -65,7 +74,15 @@
       </section>
 
       <section class="card">
-
+        <div class="card-header">
+          <div>
+            <h2>Список отправленных</h2>
+            <p class="subtitle">Проверьте вопросы перед началом игры.</p>
+          </div>
+          <span class="status-pill info">Live</span>
+        </div>
+        <div id="question-list" class="list" data-empty="Вопросы появятся после сохранения."></div>
+        <p class="hint">Редактируйте формулировки до начала раунда, чтобы избежать ошибок.</p>
       </section>
 
       <section class="card" id="answer-block" hidden>

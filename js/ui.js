@@ -43,6 +43,13 @@ const SAMPLE_QUESTION_TEMPLATES = [
   },
 ];
 
+const SOUND_LABELS = {
+  gong: "Гонг",
+  spin: "Волчок",
+  tick: "Таймер",
+  end: "Конец",
+};
+
 const createSampleQuestions = (teams) =>
   teams.flatMap((team) =>
     SAMPLE_QUESTION_TEMPLATES.map((template) => ({
@@ -201,6 +208,76 @@ const enableToastStyles = () => {
     toast.style.opacity = toast.classList.contains("show") ? "1" : "0";
   });
   observer.observe(toast, { attributes: true, attributeFilter: ["class"] });
+};
+
+// Modal helper: focus trap + ESC/backdrop close for accessible dialogs.
+const initModals = () => {
+  const modals = qsa("[data-modal]");
+  if (!modals.length) return;
+  let lastTrigger = null;
+
+  const getFocusable = (container) =>
+    qsa("a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex=\"0\"]", container);
+
+  const openModal = (modal) => {
+    if (!modal) return;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    const focusable = getFocusable(modal);
+    (focusable[0] || modal).focus();
+  };
+
+  const closeModal = (modal) => {
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    if (lastTrigger) {
+      lastTrigger.focus();
+      lastTrigger = null;
+    }
+  };
+
+  qsa("[data-modal-open]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const target = qs(`[data-modal=\"${trigger.dataset.modalOpen}\"]`);
+      lastTrigger = trigger;
+      openModal(target);
+    });
+  });
+
+  modals.forEach((modal) => {
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal(modal);
+      }
+    });
+
+    modal.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeModal(modal);
+      }
+      if (event.key === "Tab") {
+        const focusable = getFocusable(modal);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  });
+
+  qsa("[data-modal-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const modal = button.closest("[data-modal]");
+      closeModal(modal);
+    });
+  });
 };
 
 const initIndex = () => {
@@ -684,10 +761,16 @@ const initGame = async () => {
   const durationSelect = qs("#timer-duration");
   const questionBox = qs("#game-question");
   const answerList = qs("#answer-list");
+  const answerCount = qs("#answer-count");
   const scoreboard = qs("#game-scoreboard");
   const timerBox = qs("#game-timer");
   const timerProgress = qs("#game-timer-progress .progress-bar");
   const roundState = qs("#game-round-state");
+  const revealButton = qs("#reveal-answer");
+  const hideAnswerButton = qs("#hide-answer");
+  const revealBlock = qs("#answer-reveal");
+  const correctAnswer = qs("#correct-answer");
+  const answerComment = qs("#answer-comment");
   const volumeControl = qs("#volume");
   const muteButton = qs("#mute-sound");
 
@@ -708,8 +791,38 @@ const initGame = async () => {
   const soundboard = createSoundboard();
   let isMuted = false;
 
+  // Sound playback feedback + autoplay fallback toast.
+  const playSound = async (name) => {
+    const label = SOUND_LABELS[name] || "Звук";
+    const ok = await soundboard.play(name);
+    showToast(ok ? `Звук: ${label}` : "Браузер блокирует звук", ok ? "info" : "error");
+    return ok;
+  };
+
+  const isTypingTarget = (event) =>
+    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName);
+
   qsa("[data-sound]").forEach((button) => {
-    button.addEventListener("click", () => soundboard.play(button.dataset.sound));
+    button.addEventListener("click", async () => {
+      await playSound(button.dataset.sound);
+    });
+  });
+
+  // Global hotkeys for the quick sound panel.
+  document.addEventListener("keydown", async (event) => {
+    if (isTypingTarget(event)) return;
+    if (qs(".modal.is-open")) return;
+    const keyMap = {
+      1: "gong",
+      2: "spin",
+      3: "tick",
+      4: "end",
+    };
+    const soundKey = keyMap[event.key];
+    if (soundKey) {
+      event.preventDefault();
+      await playSound(soundKey);
+    }
   });
 
   volumeControl?.addEventListener("input", () => {
@@ -728,25 +841,28 @@ const initGame = async () => {
     const question = session.questions.find((q) => q.id === session.game.currentQuestionId);
     renderQuestionForPlayers(questionBox, question);
     roundState.textContent = session.game.roundState;
+    document.body.dataset.roundState = session.game.roundState;
     updateTimer(timerBox, session.game.timer, timerProgress);
 
-    answerList.innerHTML = "";
     const answers = Object.entries(session.game.answers || {});
     if (answerCount) answerCount.textContent = `Ответов: ${answers.length}`;
-    answers.forEach(([teamId, answer]) => {
-      const team = session.teams.find((item) => item.id === teamId);
-      const row = document.createElement("div");
-      row.className = "list-item";
-      row.innerHTML = `
-        <strong>${escapeHtml(team?.name || "Команда")}</strong>
-        <p>${escapeHtml(answer.text)}</p>
-        <div class="inline">
-          <button class="button secondary" data-score="yes" data-team="${teamId}">Засчитать</button>
-          <button class="button ghost" data-score="no" data-team="${teamId}">Не засчитать</button>
-        </div>
-      `;
-      answerList.append(row);
-    });
+    if (answerList) {
+      answerList.innerHTML = "";
+      answers.forEach(([teamId, answer]) => {
+        const team = session.teams.find((item) => item.id === teamId);
+        const row = document.createElement("div");
+        row.className = "list-item";
+        row.innerHTML = `
+          <strong>${escapeHtml(team?.name || "Команда")}</strong>
+          <p>${escapeHtml(answer.text)}</p>
+          <div class="inline">
+            <button class="button secondary" data-score="yes" data-team="${teamId}">Засчитать</button>
+            <button class="button ghost" data-score="no" data-team="${teamId}">Не засчитать</button>
+          </div>
+        `;
+        answerList.append(row);
+      });
+    }
 
     const hasQuestion = Boolean(question);
     if (revealButton) revealButton.disabled = !hasQuestion;
@@ -775,7 +891,7 @@ const initGame = async () => {
       showToast("Вопросы закончились", "error");
       return;
     }
-    soundboard.play("spin");
+    await playSound("spin");
     const selected = spinWheel(wheel, available.map((q) => q.id));
     currentSession = await store.updateSession(sessionId, (session) => ({
       ...session,
@@ -787,6 +903,7 @@ const initGame = async () => {
       },
     }));
     updateView(currentSession);
+    showToast("Вопрос выбран", "success");
   });
 
   startButton?.addEventListener("click", async () => {
@@ -796,7 +913,7 @@ const initGame = async () => {
       return;
     }
     const duration = Number(durationSelect.value || 60);
-    soundboard.play("gong");
+    await playSound("gong");
     currentSession = await store.updateSession(sessionId, (session) => ({
       ...session,
       game: {
@@ -807,9 +924,10 @@ const initGame = async () => {
       },
       questions: session.questions.map((q) =>
         q.id === session.game.currentQuestionId ? { ...q, used: true } : q
-      ),
+        ),
     }));
     updateView(currentSession);
+    showToast("Таймер запущен", "success");
   });
 
   replayButton?.addEventListener("click", async () => {
@@ -824,11 +942,12 @@ const initGame = async () => {
       },
     }));
     updateView(currentSession);
+    showToast("Выбор сброшен", "info");
   });
 
   nextButton?.addEventListener("click", async () => {
     if (!requireHost()) return;
-    soundboard.play("end");
+    await playSound("end");
     currentSession = await store.updateSession(sessionId, (session) => ({
       ...session,
       game: {
@@ -840,6 +959,7 @@ const initGame = async () => {
       },
     }));
     updateView(currentSession);
+    showToast("Раунд завершен", "info");
   });
 
   revealButton?.addEventListener("click", async () => {
@@ -856,6 +976,7 @@ const initGame = async () => {
       },
     }));
     updateView(currentSession);
+    showToast("Ответ показан", "success");
   });
 
   hideAnswerButton?.addEventListener("click", async () => {
@@ -868,6 +989,7 @@ const initGame = async () => {
       },
     }));
     updateView(currentSession);
+    showToast("Ответ скрыт", "info");
   });
 
   answerList?.addEventListener("click", async (event) => {
@@ -914,6 +1036,7 @@ const initGame = async () => {
 export const initPage = () => {
   renderModeBadge();
   enableToastStyles();
+  initModals();
   const page = document.body.dataset.page;
   if (page === "index") initIndex();
   if (page === "join") initJoin();
