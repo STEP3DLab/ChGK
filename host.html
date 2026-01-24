@@ -17,14 +17,19 @@
         <p class="subtitle">Кабинет ведущего</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <span class="badge" data-status-badge><span class="status-dot"></span>DEMO</span>
   </header>
 
   <main>
     <div class="container">
       <section class="card">
-        <h2>Сессия и подключение</h2>
-        <p id="host-session-status" class="subtitle">Создайте или выберите активную сессию.</p>
+        <div class="card-header">
+          <div>
+            <h2>Сессия и подключение</h2>
+            <p id="host-session-status" class="subtitle">Создайте или выберите активную сессию.</p>
+          </div>
+          <span class="status-pill info">Шаг 1</span>
+        </div>
         <div class="qr-box">
           <div id="host-qr-target" aria-label="QR-код для подключения"></div>
           <div>
@@ -44,13 +49,19 @@
                 Экран для зала
               </a>
             </div>
+            <p class="hint">Подключите капитанов, чтобы собрать вопросы.</p>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <h2>Настройка команд</h2>
-        <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+        <div class="card-header">
+          <div>
+            <h2>Настройка команд</h2>
+            <p id="host-status" class="subtitle">Создайте команды для игры.</p>
+          </div>
+          <span class="status-pill info">Шаг 2</span>
+        </div>
         <div class="field">
           <label for="team-count">Количество команд</label>
           <input id="team-count" type="number" min="1" max="12" step="1" value="2"
@@ -58,12 +69,41 @@
           <p id="team-count-hint" class="hint">Оптимально от 2 до 8 команд для удобного счёта.</p>
         </div>
         <div id="team-fields" class="list"></div>
-        <button class="button" id="save-teams">Сохранить команды</button>
+        <button class="button primary" id="save-teams">Сохранить команды</button>
       </section>
 
       <section class="card">
-        <h2>Команды и коды капитанов</h2>
-        <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
+        <div class="card-header">
+          <div>
+            <h2>Команды и коды капитанов</h2>
+            <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
+          </div>
+          <span class="status-pill info">Шаг 3</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <strong id="host-team-count">0</strong>
+            <span>Команд создано</span>
+          </div>
+          <div class="stat-card">
+            <strong id="host-ready-count">0</strong>
+            <span>Команд готовы</span>
+          </div>
+          <div class="stat-card">
+            <strong id="host-question-count">0</strong>
+            <span>Вопросов в пуле</span>
+          </div>
+          <div class="stat-card">
+            <strong id="host-player-count">0</strong>
+            <span>Игроков подключено</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Готовность команд</label>
+          <div class="progress" aria-hidden="true">
+            <div class="progress-bar" id="host-ready-progress"></div>
+          </div>
+        </div>
         <div id="team-list" class="list"></div>
         <a class="button" id="open-lobby" href="game.html" target="_blank" rel="noopener">
           Открыть экран ведущего на отдельной вкладке
@@ -71,13 +111,19 @@
       </section>
 
       <section class="card">
-        <h2>Подключившиеся игроки</h2>
+        <div class="card-header">
+          <h2>Подключившиеся игроки</h2>
+          <span class="inline-badge">Live</span>
+        </div>
         <div id="players-list" class="list"></div>
       </section>
 
       <div class="split">
         <section class="card">
-          <h2>Волчок и раунд</h2>
+          <div class="card-header">
+            <h2>Волчок и раунд</h2>
+            <span class="status-pill warning">Раунд</span>
+          </div>
           <p id="game-status" class="subtitle">Готовы к запуску.</p>
           <div class="wheel-wrapper">
             <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
@@ -109,11 +155,14 @@
                 aria-describedby="volume-hint" />
               <p id="volume-hint" class="hint">Громкость влияет на все звуки панели.</p>
             </div>
-            <button class="button secondary" id="mute-sound">Без звука</button>
+            <button class="button secondary" id="mute-sound" aria-pressed="false">Без звука</button>
           </div>
-          <button class="button" id="start-button">Старт раунда</button>
+          <button class="button primary" id="start-button">Старт раунда</button>
           <div class="divider"></div>
-          <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+          <div class="inline space-between">
+            <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+            <span class="pill" id="answer-count">Ответов: 0</span>
+          </div>
           <p class="timer" id="game-timer">—</p>
           <div class="divider"></div>
           <p id="game-question">Ожидаем вопрос.</p>
@@ -124,7 +173,10 @@
         </section>
 
         <section class="card">
-          <h2>Ответы команд</h2>
+          <div class="card-header">
+            <h2>Ответы команд</h2>
+            <span class="status-pill info">Live</span>
+          </div>
           <div id="answer-list" class="list"></div>
           <div class="divider"></div>
           <h3>Таблица счета</h3>

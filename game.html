@@ -16,13 +16,16 @@
         <p class="subtitle">Экран ведущего</p>
       </div>
     </div>
-    <span class="badge" data-status-badge>DEMO</span>
+    <span class="badge" data-status-badge><span class="status-dot"></span>DEMO</span>
   </header>
 
   <main>
     <div class="container split">
       <section class="card">
-        <h2>Волчок и раунд</h2>
+        <div class="card-header">
+          <h2>Волчок и раунд</h2>
+          <span class="status-pill warning">Раунд</span>
+        </div>
         <p id="game-status" class="subtitle">Готовы к запуску.</p>
         <div class="wheel-wrapper">
           <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
@@ -54,11 +57,14 @@
               aria-describedby="volume-hint" />
             <p id="volume-hint" class="hint">Громкость влияет на все звуки панели.</p>
           </div>
-          <button class="button secondary" id="mute-sound">Без звука</button>
+          <button class="button secondary" id="mute-sound" aria-pressed="false">Без звука</button>
         </div>
-        <button class="button" id="start-button">Старт раунда</button>
+        <button class="button primary" id="start-button">Старт раунда</button>
         <div class="divider"></div>
-        <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+        <div class="inline space-between">
+          <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+          <span class="pill" id="answer-count">Ответов: 0</span>
+        </div>
         <p class="timer" id="game-timer">—</p>
         <div class="divider"></div>
         <p id="game-question">Ожидаем вопрос.</p>
@@ -69,7 +75,10 @@
       </section>
 
       <section class="card">
-        <h2>Ответы команд</h2>
+        <div class="card-header">
+          <h2>Ответы команд</h2>
+          <span class="status-pill info">Live</span>
+        </div>
         <div id="answer-list" class="list"></div>
         <div class="divider"></div>
         <h3>Таблица счета</h3>
