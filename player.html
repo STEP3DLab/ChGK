@@ -20,7 +20,16 @@
         <p class="subtitle">Экран игрока</p>
       </div>
     </div>
-
+    <div class="header-actions">
+      <div class="mode-banner" role="status" aria-live="polite">
+        <span class="status-dot"></span>
+        Режим игрока
+      </div>
+      <div class="badge" data-status-badge>
+        <span class="status-dot"></span>
+        <span>DEMO (Offline)</span>
+      </div>
+    </div>
   </header>
 
   <main id="main-content">
@@ -30,7 +39,7 @@
           <h2>Текущий раунд</h2>
           <span class="status-pill info">Live</span>
         </div>
-        <p id="player-status" class="subtitle">Ожидаем подключения.</p>
+        <p id="player-status" class="subtitle" aria-live="polite">Ожидаем подключения.</p>
         <p class="hint">Следите за таймером и текущим вопросом.</p>
         <p class="section-title">Состояние: <span id="round-state">—</span></p>
         <p class="timer" id="player-timer">—</p>
@@ -39,11 +48,24 @@
         </div>
         <div class="divider"></div>
         <p id="player-question">Ожидаем вопрос.</p>
-
       </section>
 
       <section class="card">
-
+        <div class="card-header">
+          <div>
+            <h2>Счет и ответ</h2>
+            <p class="subtitle">Результаты показываются после решения ведущего.</p>
+          </div>
+          <span class="status-pill info">Live</span>
+        </div>
+        <div class="answer-reveal" id="player-answer-reveal" hidden>
+          <span class="section-title">Правильный ответ</span>
+          <strong id="player-correct-answer">—</strong>
+          <p class="hint" id="player-answer-comment"></p>
+        </div>
+        <div class="divider"></div>
+        <h3 class="section-title">Таблица счета</h3>
+        <div id="player-scoreboard" class="scoreboard" data-empty="Очки появятся после первого раунда."></div>
       </section>
     </div>
   </main>

@@ -6,8 +6,10 @@ export const initWheel = (canvas) => {
   const ctx = canvas.getContext("2d");
   const size = canvas.width = 360;
   canvas.height = 360;
+  const accent = getComputedStyle(canvas).getPropertyValue("--accent").trim() || "#7df9ff";
 
-  const draw = (segments = 12, angle = 0) => {
+  // Draw wheel segments and highlight the selected one for clarity.
+  const draw = (segments = 12, angle = 0, selectedIndex = null) => {
     ctx.clearRect(0, 0, size, size);
     const radius = size / 2 - 8;
     ctx.save();
@@ -16,7 +18,14 @@ export const initWheel = (canvas) => {
     for (let i = 0; i < segments; i += 1) {
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.fillStyle = i % 2 === 0 ? "#1f1f1f" : "#0f0f0f";
+      const isSelected = selectedIndex === i;
+      ctx.fillStyle = isSelected ? accent : i % 2 === 0 ? "#1f1f1f" : "#0f0f0f";
+      if (isSelected) {
+        ctx.shadowColor = accent;
+        ctx.shadowBlur = 16;
+      } else {
+        ctx.shadowBlur = 0;
+      }
       ctx.arc(0, 0, radius, (i * 2 * Math.PI) / segments, ((i + 1) * 2 * Math.PI) / segments);
       ctx.closePath();
       ctx.fill();
@@ -40,7 +49,16 @@ export const initWheel = (canvas) => {
 
   draw();
 
-  return { canvas, ctx, draw };
+  return {
+    canvas,
+    ctx,
+    draw,
+    state: {
+      angle: 0,
+      selectedIndex: null,
+      segments: 12,
+    },
+  };
 };
 
 export const spinWheel = (wheel, ids) => {
@@ -48,15 +66,33 @@ export const spinWheel = (wheel, ids) => {
   const segments = Math.max(ids.length, 8);
   const targetIndex = Math.floor(Math.random() * ids.length);
   const targetId = ids[targetIndex];
-  let angle = 0;
-  let velocity = 0.4 + Math.random() * 0.6;
+  // Align the chosen segment under the pointer with eased animation.
+  const slice = (Math.PI * 2) / segments;
+  const startAngle = wheel.state?.angle ?? 0;
+  const normalizedStart = ((startAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  const baseAngle = -Math.PI / 2 - (targetIndex + 0.5) * slice;
+  const offset = ((baseAngle - normalizedStart) + Math.PI * 2) % (Math.PI * 2);
+  const spins = 3 + Math.floor(Math.random() * 2);
+  const totalRotation = spins * Math.PI * 2 + offset;
+  const finalAngle = startAngle + totalRotation;
+  const duration = 2400 + Math.random() * 600;
+  const startedAt = performance.now();
 
   const animate = () => {
-    angle += velocity;
-    velocity *= 0.985;
-    wheel.draw(segments, angle);
-    if (velocity > 0.005) {
+    const now = performance.now();
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const angle = startAngle + totalRotation * eased;
+    wheel.draw(segments, angle, targetIndex);
+    if (wheel.state) {
+      wheel.state.angle = angle;
+      wheel.state.selectedIndex = targetIndex;
+      wheel.state.segments = segments;
+    }
+    if (progress < 1) {
       animationFrame = requestAnimationFrame(animate);
+    } else {
+      wheel.draw(segments, finalAngle, targetIndex);
     }
   };
 
