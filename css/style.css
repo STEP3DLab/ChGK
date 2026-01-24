@@ -438,6 +438,46 @@ textarea {
   display: inline-block;
 }
 
+.timer.is-ending {
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.6);
+  box-shadow: 0 0 16px rgba(248, 113, 113, 0.3);
+}
+
+.progress {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.progress-bar {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.25));
+  transition: width 0.3s ease;
+}
+
+.progress.is-ending .progress-bar {
+  background: linear-gradient(90deg, rgba(248, 113, 113, 0.95), rgba(248, 113, 113, 0.25));
+}
+
+.answer-reveal {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.answer-reveal strong {
+  font-size: 1.1rem;
+}
+
 .scoreboard {
   display: grid;
   gap: 12px;

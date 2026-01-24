@@ -39,6 +39,7 @@ const createSessionPayload = (sessionId, hostId) => ({
       durationSec: 60,
     },
     answers: {},
+    revealAnswer: false,
   },
 });
 
@@ -78,12 +79,14 @@ const renderTeamsOptions = (select, teams) => {
 
 const renderScoreboard = (container, teams) => {
   container.innerHTML = "";
-  teams.forEach((team) => {
+  [...teams]
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .forEach((team) => {
     const row = document.createElement("div");
     row.className = "score-row";
     row.innerHTML = `<span>${team.name}</span><strong>${team.score ?? 0}</strong>`;
     container.append(row);
-  });
+    });
 };
 
 const renderPlayersList = (container, players, teams) => {
@@ -132,14 +135,27 @@ const renderQuestionForPlayers = (container, question) => {
   container.textContent = question ? question.text : "Ожидаем вопрос.";
 };
 
-const updateTimer = (element, timer) => {
+const updateTimer = (element, timer, progress) => {
+  if (!element) return;
   if (!timer?.startAt) {
     element.textContent = "—";
+    element.classList.remove("is-ending");
+    if (progress) {
+      progress.style.width = "0%";
+      progress.parentElement?.classList.remove("is-ending");
+    }
     return;
   }
   const elapsed = (Date.now() - timer.startAt) / 1000;
   const remaining = Math.max(0, timer.durationSec - elapsed);
+  const percent = timer.durationSec ? Math.max(0, Math.min(100, (remaining / timer.durationSec) * 100)) : 0;
   element.textContent = formatTime(remaining);
+  const isEnding = remaining <= 10;
+  element.classList.toggle("is-ending", isEnding);
+  if (progress) {
+    progress.style.width = `${percent}%`;
+    progress.parentElement?.classList.toggle("is-ending", isEnding);
+  }
 };
 
 const enableToastStyles = () => {
@@ -420,6 +436,10 @@ const initCaptain = async () => {
   const answerBlock = qs("#answer-block");
   const answerInput = qs("#answer-input");
   const answerButton = qs("#submit-answer");
+  const roundState = qs("#captain-round-state");
+  const timerBox = qs("#captain-timer");
+  const timerProgress = qs("#captain-timer-progress .progress-bar");
+  const questionBox = qs("#captain-question");
 
   if (!sessionId || !user || user.role !== "captain") {
     statusText.textContent = "Нет доступа капитана.";
@@ -527,6 +547,10 @@ const initCaptain = async () => {
     readyButton.textContent = team?.ready ? "Снять готовность" : "Готово";
     const canAnswer = session.game.roundState === "answering";
     answerBlock.hidden = !canAnswer;
+    if (roundState) roundState.textContent = session.game.roundState;
+    const question = session.questions.find((q) => q.id === session.game.currentQuestionId);
+    if (questionBox) renderQuestionForPlayers(questionBox, question);
+    updateTimer(timerBox, session.game.timer, timerProgress);
   });
 };
 
@@ -535,8 +559,12 @@ const initPlayer = async () => {
   const statusText = qs("#player-status");
   const questionBox = qs("#player-question");
   const timerBox = qs("#player-timer");
+  const timerProgress = qs("#player-timer-progress .progress-bar");
   const scoreboard = qs("#player-scoreboard");
   const stateLabel = qs("#round-state");
+  const answerReveal = qs("#player-answer-reveal");
+  const correctAnswer = qs("#player-correct-answer");
+  const answerComment = qs("#player-answer-comment");
 
   if (!sessionId) {
     statusText.textContent = "Нет активной сессии.";
@@ -550,13 +578,20 @@ const initPlayer = async () => {
     const question = session.questions.find((q) => q.id === session.game.currentQuestionId);
     renderQuestionForPlayers(questionBox, question);
     stateLabel.textContent = session.game.roundState;
-    updateTimer(timerBox, session.game.timer);
+    updateTimer(timerBox, session.game.timer, timerProgress);
+    const reveal = session.game.revealAnswer && question;
+    answerReveal.hidden = !reveal;
+    if (reveal) {
+      correctAnswer.textContent = question.answer || "—";
+      answerComment.textContent = question.comment || "";
+      answerComment.hidden = !question.comment;
+    }
   });
 
   setInterval(async () => {
     const session = await store.getSession(sessionId);
     if (!session) return;
-    updateTimer(timerBox, session.game.timer);
+    updateTimer(timerBox, session.game.timer, timerProgress);
   }, 1000);
 };
 
@@ -573,9 +608,15 @@ const initGame = async () => {
   const answerList = qs("#answer-list");
   const scoreboard = qs("#game-scoreboard");
   const timerBox = qs("#game-timer");
+  const timerProgress = qs("#game-timer-progress .progress-bar");
   const roundState = qs("#game-round-state");
   const volumeControl = qs("#volume");
   const muteButton = qs("#mute-sound");
+  const revealBlock = qs("#answer-reveal");
+  const correctAnswer = qs("#correct-answer");
+  const answerComment = qs("#answer-comment");
+  const revealButton = qs("#reveal-answer");
+  const hideAnswerButton = qs("#hide-answer");
 
   if (!sessionId) {
     statusText.textContent = "Нет активной сессии.";
@@ -612,7 +653,7 @@ const initGame = async () => {
     const question = session.questions.find((q) => q.id === session.game.currentQuestionId);
     renderQuestionForPlayers(questionBox, question);
     roundState.textContent = session.game.roundState;
-    updateTimer(timerBox, session.game.timer);
+    updateTimer(timerBox, session.game.timer, timerProgress);
 
     answerList.innerHTML = "";
     Object.entries(session.game.answers || {}).forEach(([teamId, answer]) => {
@@ -629,6 +670,17 @@ const initGame = async () => {
       `;
       answerList.append(row);
     });
+
+    const hasQuestion = Boolean(question);
+    if (revealButton) revealButton.disabled = !hasQuestion;
+    if (hideAnswerButton) hideAnswerButton.disabled = !hasQuestion;
+    const reveal = session.game.revealAnswer && question;
+    if (revealBlock) revealBlock.hidden = !reveal;
+    if (reveal) {
+      correctAnswer.textContent = question.answer || "—";
+      answerComment.textContent = question.comment || "";
+      answerComment.hidden = !question.comment;
+    }
   };
 
   const requireHost = () => {
@@ -654,6 +706,7 @@ const initGame = async () => {
         ...session.game,
         currentQuestionId: selected,
         roundState: "reading",
+        revealAnswer: false,
       },
     }));
     updateView(currentSession);
@@ -673,6 +726,7 @@ const initGame = async () => {
         ...session.game,
         roundState: "answering",
         timer: { startAt: Date.now(), durationSec: duration },
+        revealAnswer: false,
       },
       questions: session.questions.map((q) =>
         q.id === session.game.currentQuestionId ? { ...q, used: true } : q
@@ -689,6 +743,7 @@ const initGame = async () => {
         ...session.game,
         currentQuestionId: null,
         roundState: "spinning",
+        revealAnswer: false,
       },
     }));
     updateView(currentSession);
@@ -704,6 +759,35 @@ const initGame = async () => {
         roundState: "lobby",
         timer: { startAt: null, durationSec: session.game.timer.durationSec },
         answers: {},
+        revealAnswer: false,
+      },
+    }));
+    updateView(currentSession);
+  });
+
+  revealButton?.addEventListener("click", async () => {
+    if (!requireHost()) return;
+    if (!currentSession.game.currentQuestionId) {
+      showToast("Сначала выберите вопрос", "error");
+      return;
+    }
+    currentSession = await store.updateSession(sessionId, (session) => ({
+      ...session,
+      game: {
+        ...session.game,
+        revealAnswer: true,
+      },
+    }));
+    updateView(currentSession);
+  });
+
+  hideAnswerButton?.addEventListener("click", async () => {
+    if (!requireHost()) return;
+    currentSession = await store.updateSession(sessionId, (session) => ({
+      ...session,
+      game: {
+        ...session.game,
+        revealAnswer: false,
       },
     }));
     updateView(currentSession);
@@ -746,7 +830,7 @@ const initGame = async () => {
   setInterval(async () => {
     const session = await store.getSession(sessionId);
     if (!session) return;
-    updateTimer(timerBox, session.game.timer);
+    updateTimer(timerBox, session.game.timer, timerProgress);
   }, 1000);
 };
 

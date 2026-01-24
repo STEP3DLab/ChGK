@@ -59,6 +59,13 @@
       <section class="card" id="answer-block" hidden>
         <h2>Ответ на раунд</h2>
         <p>Раунд активен. Введите ответ команды.</p>
+        <p class="section-title">Состояние: <span id="captain-round-state">—</span></p>
+        <p class="timer" id="captain-timer">—</p>
+        <div class="progress" id="captain-timer-progress" aria-hidden="true">
+          <div class="progress-bar"></div>
+        </div>
+        <div class="divider"></div>
+        <p id="captain-question">Ожидаем вопрос.</p>
         <div class="field">
           <label for="answer-input">Ответ</label>
           <input id="answer-input" type="text" />

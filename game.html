@@ -64,8 +64,20 @@
         <div class="divider"></div>
         <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
         <p class="timer" id="game-timer">—</p>
+        <div class="progress" id="game-timer-progress" aria-hidden="true">
+          <div class="progress-bar"></div>
+        </div>
         <div class="divider"></div>
         <p id="game-question">Ожидаем вопрос.</p>
+        <div class="answer-reveal" id="answer-reveal" hidden>
+          <span class="section-title">Правильный ответ</span>
+          <strong id="correct-answer">—</strong>
+          <p class="hint" id="answer-comment"></p>
+        </div>
+        <div class="inline">
+          <button class="button secondary" id="reveal-answer">Показать ответ</button>
+          <button class="button ghost" id="hide-answer">Скрыть ответ</button>
+        </div>
         <div class="inline">
           <button class="button secondary" id="next-round">Следующий раунд</button>
           <button class="button ghost" id="export-json">Экспорт результатов</button>
