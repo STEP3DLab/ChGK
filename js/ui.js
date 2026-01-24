@@ -267,7 +267,15 @@ const initJoin = async () => {
 };
 
 const initHost = async () => {
-  const sessionId = await ensureSessionAccess();
+  let sessionId = await ensureSessionAccess();
+  const sessionStatus = qs("#host-session-status");
+  const sessionCode = qs("#host-session-code");
+  const sessionLink = qs("#host-session-link");
+  const copyLinkButton = qs("#host-copy-link");
+  const qrTarget = qs("#host-qr-target");
+  const openJoinButton = qs("#open-join");
+  const openViewerButton = qs("#open-viewer");
+  const createSessionButton = qs("#create-session-host");
   const statusText = qs("#host-status");
   const teamCountInput = qs("#team-count");
   const teamFields = qs("#team-fields");
@@ -276,15 +284,50 @@ const initHost = async () => {
   const lobbyButton = qs("#open-lobby");
   const playersList = qs("#players-list");
 
+  let currentSession = null;
+  const hostData = getStoredHost();
+
+  const updateSessionAccess = (id) => {
+    if (!id) return;
+    const joinUrl = `${getBaseUrl()}join.html?session=${id}`;
+    sessionCode.textContent = id;
+    sessionLink.textContent = joinUrl;
+    sessionLink.href = joinUrl;
+    if (openJoinButton) openJoinButton.href = joinUrl;
+    if (openViewerButton) openViewerButton.href = `${getBaseUrl()}player.html?session=${id}`;
+    renderQrCode(qrTarget, joinUrl);
+    if (sessionStatus) sessionStatus.textContent = "Сессия активна. Подключайте участников.";
+  };
+
+  const createNewSession = async () => {
+    const newSessionId = createId(6);
+    const newHostId = createId(10);
+    const payload = createSessionPayload(newSessionId, newHostId);
+    await store.createSession(payload);
+    saveLocal(STORAGE_KEYS.lastSession, newSessionId);
+    setStoredHost({ sessionId: newSessionId, hostId: newHostId });
+    window.location.href = `${getBaseUrl()}host.html?session=${newSessionId}`;
+  };
+
+  createSessionButton?.addEventListener("click", createNewSession);
+
+  copyLinkButton?.addEventListener("click", async () => {
+    const link = sessionLink?.textContent;
+    if (!link) return;
+    const ok = await copyToClipboard(link);
+    showToast(ok ? "Ссылка скопирована" : "Не удалось скопировать", ok ? "success" : "error");
+  });
+
   if (!sessionId) {
-    statusText.textContent = "Нет активной сессии.";
+    if (sessionStatus) sessionStatus.textContent = "Нет активной сессии. Создайте новую.";
+    statusText.textContent = "Сессия не создана.";
     return;
   }
 
-  let currentSession = await store.getSession(sessionId);
-  const hostData = getStoredHost();
+  currentSession = await store.getSession(sessionId);
 
   if (!currentSession) {
+    if (sessionStatus) sessionStatus.textContent = "Сессия не найдена. Создайте новую.";
     statusText.textContent = "Сессия не найдена.";
     return;
   }
@@ -353,6 +396,7 @@ const initHost = async () => {
     showToast("Команды сохранены", "success");
   });
 
+  updateSessionAccess(sessionId);
   lobbyButton.href = `${getBaseUrl()}game.html?session=${sessionId}`;
   renderTeams(currentSession.teams);
   renderPlayersList(playersList, currentSession.players, currentSession.teams);
@@ -712,7 +756,10 @@ export const initPage = () => {
   const page = document.body.dataset.page;
   if (page === "index") initIndex();
   if (page === "join") initJoin();
-  if (page === "host") initHost();
+  if (page === "host") {
+    initHost();
+    initGame();
+  }
   if (page === "captain") initCaptain();
   if (page === "player") initPlayer();
   if (page === "game") initGame();

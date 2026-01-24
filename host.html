@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ведущий · Что? Где? Step3D!</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="vendor/qrcode.min.js" defer></script>
   <script type="module" src="js/ui.js" defer></script>
 </head>
 <body data-page="host">
@@ -22,6 +23,32 @@
   <main>
     <div class="container">
       <section class="card">
+        <h2>Сессия и подключение</h2>
+        <p id="host-session-status" class="subtitle">Создайте или выберите активную сессию.</p>
+        <div class="qr-box">
+          <div id="host-qr-target" aria-label="QR-код для подключения"></div>
+          <div>
+            <p class="session-code" id="host-session-code">—</p>
+            <p>
+              <a id="host-session-link" href="#">Ссылка на подключение</a>
+            </p>
+            <div class="inline">
+              <button class="button" id="host-copy-link">Скопировать ссылку</button>
+              <a class="button secondary" id="open-join" href="join.html" target="_blank" rel="noopener">
+                Открыть страницу подключения
+              </a>
+            </div>
+            <div class="inline">
+              <button class="button ghost" id="create-session-host">Новая сессия</button>
+              <a class="button ghost" id="open-viewer" href="player.html" target="_blank" rel="noopener">
+                Экран для зала
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
         <h2>Настройка команд</h2>
         <p id="host-status" class="subtitle">Создайте команды для игры.</p>
         <div class="field">
@@ -38,13 +65,72 @@
         <h2>Команды и коды капитанов</h2>
         <p class="hint">Скопируйте коды и отправьте капитанам перед стартом.</p>
         <div id="team-list" class="list"></div>
-        <a class="button" id="open-lobby" href="game.html">Открыть лобби</a>
+        <a class="button" id="open-lobby" href="game.html" target="_blank" rel="noopener">
+          Открыть экран ведущего на отдельной вкладке
+        </a>
       </section>
 
       <section class="card">
         <h2>Подключившиеся игроки</h2>
         <div id="players-list" class="list"></div>
       </section>
+
+      <div class="split">
+        <section class="card">
+          <h2>Волчок и раунд</h2>
+          <p id="game-status" class="subtitle">Готовы к запуску.</p>
+          <div class="wheel-wrapper">
+            <canvas class="wheel" id="wheel" aria-label="Волчок"></canvas>
+          </div>
+          <div class="inline">
+            <button class="button" id="spin-button">Запустить волчок</button>
+            <button class="button secondary" id="replay-spin">Переиграть</button>
+          </div>
+          <div class="field">
+            <label for="timer-duration">Длительность (сек)</label>
+            <p class="hint" id="timer-hint">Выберите длительность обсуждения до старта раунда.</p>
+            <select id="timer-duration">
+              <option value="30">30</option>
+              <option value="60" selected>60</option>
+              <option value="90">90</option>
+            </select>
+          </div>
+          <div class="soundboard">
+            <p class="section-title">Звуки</p>
+            <div class="inline">
+              <button class="button ghost" data-sound="gong">Гонг</button>
+              <button class="button ghost" data-sound="spin">Волчок</button>
+              <button class="button ghost" data-sound="tick">Таймер</button>
+              <button class="button ghost" data-sound="end">Конец</button>
+            </div>
+            <div class="field">
+              <label for="volume">Громкость</label>
+              <input id="volume" type="range" min="0" max="1" step="0.05" value="0.6"
+                aria-describedby="volume-hint" />
+              <p id="volume-hint" class="hint">Громкость влияет на все звуки панели.</p>
+            </div>
+            <button class="button secondary" id="mute-sound">Без звука</button>
+          </div>
+          <button class="button" id="start-button">Старт раунда</button>
+          <div class="divider"></div>
+          <p class="section-title">Состояние: <span id="game-round-state">lobby</span></p>
+          <p class="timer" id="game-timer">—</p>
+          <div class="divider"></div>
+          <p id="game-question">Ожидаем вопрос.</p>
+          <div class="inline">
+            <button class="button secondary" id="next-round">Следующий раунд</button>
+            <button class="button ghost" id="export-json">Экспорт результатов</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Ответы команд</h2>
+          <div id="answer-list" class="list"></div>
+          <div class="divider"></div>
+          <h3>Таблица счета</h3>
+          <div id="game-scoreboard" class="scoreboard"></div>
+        </section>
+      </div>
     </div>
   </main>
 
