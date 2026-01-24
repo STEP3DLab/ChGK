@@ -15,8 +15,12 @@ const loadAll = () => {
 };
 
 const saveAll = (payload) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  window.dispatchEvent(new CustomEvent("step3d-store-update"));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    window.dispatchEvent(new CustomEvent("step3d-store-update"));
+  } catch (error) {
+    console.warn("Offline store write failed", error);
+  }
 };
 
 const mergeDeep = (target, source) => {

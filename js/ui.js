@@ -15,6 +15,8 @@ import {
   formatTime,
   setBadge,
   showToast,
+  normalizeSessionId,
+  escapeHtml,
 } from "./app.js";
 import { getStore } from "./store.js";
 import { renderQrCode } from "./qr.js";
@@ -45,13 +47,13 @@ const createSessionPayload = (sessionId, hostId) => ({
 
 const getSessionIdFromUrl = () => {
   const params = new URLSearchParams(window.location.search);
-  return params.get("session");
+  return normalizeSessionId(params.get("session"));
 };
 
 const ensureSessionAccess = async () => {
   const urlSession = getSessionIdFromUrl();
-  if (urlSession) return urlSession.toUpperCase();
-  const lastSession = loadLocal(STORAGE_KEYS.lastSession, "");
+  if (urlSession) return urlSession;
+  const lastSession = normalizeSessionId(loadLocal(STORAGE_KEYS.lastSession, ""));
   return lastSession || "";
 };
 
@@ -84,7 +86,7 @@ const renderScoreboard = (container, teams) => {
     .forEach((team) => {
     const row = document.createElement("div");
     row.className = "score-row";
-    row.innerHTML = `<span>${team.name}</span><strong>${team.score ?? 0}</strong>`;
+    row.innerHTML = `<span>${escapeHtml(team.name)}</span><strong>${team.score ?? 0}</strong>`;
     container.append(row);
     });
 };
@@ -100,11 +102,11 @@ const renderPlayersList = (container, players, teams) => {
     const item = document.createElement("div");
     item.className = "list-item";
     item.innerHTML = `
-      <strong>${player.name || "Без имени"}</strong>
+      <strong>${escapeHtml(player.name || "Без имени")}</strong>
       <span class="status-pill ${player.role === "captain" ? "info" : "success"}">
         ${player.role === "captain" ? "Капитан" : "Участник"}
       </span>
-      <span>${teamMap[player.teamId] || "Без команды"}</span>
+      <span>${escapeHtml(teamMap[player.teamId] || "Без команды")}</span>
     `;
     container.append(item);
   });
@@ -121,8 +123,8 @@ const renderQuestionList = (container, questions) => {
     item.className = "list-item";
     item.dataset.id = question.id;
     item.innerHTML = `
-      <strong>${question.text.slice(0, 80)}</strong>
-      <span>Ответ: ${question.answer || "—"}</span>
+      <strong>${escapeHtml(question.text.slice(0, 80))}</strong>
+      <span>Ответ: ${escapeHtml(question.answer || "—")}</span>
       <span class="status-pill ${question.used ? "warning" : "success"}">
         ${question.used ? "Сыгран" : "В пуле"}
       </span>
@@ -224,8 +226,9 @@ const initJoin = async () => {
   let selectedRole = "player";
 
   const loadSession = async (sessionId) => {
-    if (!sessionId) return;
-    const session = await store.getSession(sessionId.toUpperCase());
+    const normalizedId = normalizeSessionId(sessionId);
+    if (!normalizedId) return;
+    const session = await store.getSession(normalizedId);
     currentSession = session;
     if (!session) {
       statusText.textContent = "Сессия не найдена.";
@@ -289,10 +292,16 @@ const initJoin = async () => {
   });
 
   const presetSession = getSessionIdFromUrl();
-  if (presetSession) sessionInput.value = presetSession.toUpperCase();
+  if (presetSession) sessionInput.value = presetSession;
 
-  sessionInput?.addEventListener("change", () => loadSession(sessionInput.value.trim()));
-  if (sessionInput?.value) await loadSession(sessionInput.value.trim());
+  sessionInput?.addEventListener("input", () => {
+    const normalized = normalizeSessionId(sessionInput.value);
+    if (sessionInput.value !== normalized) {
+      sessionInput.value = normalized;
+    }
+  });
+  sessionInput?.addEventListener("change", () => loadSession(sessionInput.value));
+  if (sessionInput?.value) await loadSession(sessionInput.value);
 };
 
 const initHost = async () => {
@@ -376,8 +385,8 @@ const initHost = async () => {
       const item = document.createElement("div");
       item.className = "list-item";
       item.innerHTML = `
-        <strong>${team.name}</strong>
-        <span>Код капитана: <strong>${team.captainCode}</strong></span>
+        <strong>${escapeHtml(team.name)}</strong>
+        <span>Код капитана: <strong>${escapeHtml(team.captainCode)}</strong></span>
         <span class="status-pill ${team.ready ? "success" : "warning"}">
           ${team.ready ? "Готовы" : "Ожидают"}
         </span>
@@ -404,7 +413,9 @@ const initHost = async () => {
 
   const renderFields = (count) => {
     teamFields.innerHTML = "";
-    for (let i = 0; i < count; i += 1) {
+    const clampedCount = Math.min(12, Math.max(1, count));
+    if (teamCountInput) teamCountInput.value = String(clampedCount);
+    for (let i = 0; i < clampedCount; i += 1) {
       const field = document.createElement("div");
       field.className = "field";
       field.innerHTML = `
@@ -416,7 +427,7 @@ const initHost = async () => {
   };
 
   teamCountInput?.addEventListener("change", () => {
-    const count = Math.max(1, Number(teamCountInput.value || 1));
+    const count = Number(teamCountInput.value || 1);
     renderFields(count);
   });
 
@@ -698,8 +709,8 @@ const initGame = async () => {
       const row = document.createElement("div");
       row.className = "list-item";
       row.innerHTML = `
-        <strong>${team?.name || "Команда"}</strong>
-        <p>${answer.text}</p>
+        <strong>${escapeHtml(team?.name || "Команда")}</strong>
+        <p>${escapeHtml(answer.text)}</p>
         <div class="inline">
           <button class="button secondary" data-score="yes" data-team="${teamId}">Засчитать</button>
           <button class="button ghost" data-score="no" data-team="${teamId}">Не засчитать</button>

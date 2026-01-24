@@ -200,9 +200,6 @@ header.site-header {
   background: linear-gradient(160deg, rgba(26, 26, 26, 0.98), rgba(13, 13, 13, 0.98));
 }
 
-
-}
-
 .card h2,
 .card h3 {
   margin: 0;
@@ -832,5 +829,20 @@ canvas.wheel {
   .input-group {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:hover {
+    transform: none;
   }
 }
