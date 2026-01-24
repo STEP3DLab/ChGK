@@ -25,6 +25,34 @@ import { createSoundboard } from "./sound.js";
 
 const store = getStore();
 
+const SAMPLE_QUESTION_TEMPLATES = [
+  {
+    text: "Сколько будет 7 + 5?",
+    answer: "12",
+    comment: "Проверка базовой арифметики.",
+  },
+  {
+    text: "Столица Франции?",
+    answer: "Париж",
+    comment: "Базовый географический вопрос.",
+  },
+  {
+    text: "Кто написал роман «Война и мир»?",
+    answer: "Лев Толстой",
+    comment: "Тестовый вопрос по литературе.",
+  },
+];
+
+const createSampleQuestions = (teams) =>
+  teams.flatMap((team) =>
+    SAMPLE_QUESTION_TEMPLATES.map((template) => ({
+      ...template,
+      id: createId(8),
+      teamId: team.id,
+      used: false,
+    })),
+  );
+
 const createSessionPayload = (sessionId, hostId) => ({
   id: sessionId,
   createdAt: Date.now(),
@@ -454,7 +482,8 @@ const initHost = async () => {
       score: 0,
       ready: false,
     }));
-    currentSession = await store.updateSession(sessionId, { teams });
+    const seededQuestions = currentSession.questions.length ? currentSession.questions : createSampleQuestions(teams);
+    currentSession = await store.updateSession(sessionId, { teams, questions: seededQuestions });
     renderTeams(currentSession.teams);
     showToast("Команды сохранены", "success");
   });
