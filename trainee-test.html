@@ -13,6 +13,7 @@
       --line: #e3e8f0;
       --accent: #2563ff;
       --accent-soft: #edf3ff;
+      --accent-deep: #1947cc;
       --ok: #0f8b4c;
       --danger: #cf2c2c;
       --radius: 14px;
@@ -42,6 +43,13 @@
       padding: 16px;
       animation: fade .25s ease;
     }
+    .card--header {
+      position: sticky;
+      top: 8px;
+      z-index: 10;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+      backdrop-filter: blur(2px);
+    }
     @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
     .topline { display:flex; justify-content:space-between; align-items:center; gap:8px; color: var(--muted); font-size: 12px; }
     .bar-wrap { height: 10px; background:#eef2fa; border-radius:999px; overflow:hidden; margin-top:8px; }
@@ -49,6 +57,7 @@
     .block-bar { margin-top:8px; display:grid; grid-template-columns: repeat(10, 1fr); gap:4px; }
     .block-seg { height:6px; border-radius:999px; background:#e6ecf8; }
     .block-seg.active, .block-seg.done { background: var(--accent); }
+    .block-meta { display:flex; justify-content:space-between; margin-top:8px; font-size:12px; color:var(--muted); }
     h1,h2,h3,p { margin:0; }
     h2 { font-size: 1.18rem; margin-bottom: 6px; }
     .sub { color:var(--muted); font-size: 13px; margin-bottom: 14px; }
@@ -75,13 +84,30 @@
       border:1px solid var(--line); background:#fff; color:var(--text); border-radius:10px; padding:10px 14px; cursor:pointer;
     }
     .btn.primary { background: var(--accent); border-color: var(--accent); color:#fff; }
+    .btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
     .btn:disabled { opacity:.6; cursor:not-allowed; }
+    .btn:focus-visible, .opt:focus-within, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(37, 99, 255, 0.25);
+      outline-offset: 1px;
+    }
     .warn { color: var(--danger); font-size: 13px; margin-top:8px; }
     .ok { color:var(--ok); }
     .tiny { font-size:12px; color:var(--muted); }
     .project-card, .rating-row, .match-row, .ordering-row, .neural-row { border:1px solid var(--line); border-radius:10px; padding:10px; }
     .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .spaced { display:grid; gap:10px; }
+    .status-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: #eef3ff;
+      color: #2148ba;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .status-chip.done { background:#ebf8f1; color:#0f8b4c; }
     @media (min-width: 768px) {
       .app { padding: 24px; }
       .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -90,13 +116,17 @@
 </head>
 <body>
   <main class="app">
-    <section class="card">
+    <section class="card card--header">
       <div class="topline">
         <span id="progressText">Вопрос 1</span>
         <span id="blockText">Блок 1</span>
       </div>
       <div class="bar-wrap"><div class="bar" id="globalBar"></div></div>
       <div class="block-bar" id="blockBar"></div>
+      <div class="block-meta">
+        <span id="answeredCounter">Заполнено: 0</span>
+        <span id="completionText">Готовность: 0%</span>
+      </div>
     </section>
 
     <section class="card" id="screen"></section>
@@ -106,7 +136,7 @@
         <button class="btn" id="prevBtn">Назад</button>
         <button class="btn primary" id="nextBtn">Далее</button>
       </div>
-      <p class="warn" id="warn"></p>
+      <p class="warn" id="warn" aria-live="polite"></p>
       <p class="tiny">Автосохранение включено. Прогресс сохраняется локально.</p>
     </section>
   </main>
@@ -221,6 +251,55 @@
     function setAnswer(block,key,value){ state.answers[block][key] = value; saveState(); }
     function getAnswer(block,key,def){ return state.answers[block][key] ?? def; }
 
+    function isQuestionAnswered(q){
+      const v = getAnswer(q.block,q.key,null);
+      if (q.type === "single") return Boolean(v);
+      if (q.type === "multi" || q.type === "article") return Array.isArray(v) && v.length > 0;
+      if (q.type === "text" || q.type === "longtext") return Boolean(String(v || "").trim());
+      if (q.type === "visual") return Boolean(v) && q.items.every((_, idx) => Boolean(v[`item${idx + 1}`]));
+      if (q.type === "match") return Boolean(v) && q.terms.every(term => Boolean(v[term]));
+      if (q.type === "order") return Array.isArray(v) && v.length === q.steps.length && v.every(x => Number.isInteger(Number(x)) && Number(x) >= 1 && Number(x) <= q.steps.length);
+      if (q.type === "stream") return Boolean(v) && q.cases.every((_, idx) => Boolean(v[`case${idx + 1}`]));
+      if (q.type === "projects") return Array.isArray(state.answers.block3.projects) && state.answers.block3.projects.length === projectCards.length && state.answers.block3.projects.every(p => Boolean(p.choice));
+      if (q.type === "labor") return Boolean(v) && q.tasks.every((_, idx) => { const t = v[`task${idx+1}`]; return t && t.hours !== "" && t.cost !== ""; });
+      if (q.type === "assignment") return Boolean(v?.sent_files) && Boolean(v?.finish_clicked);
+      if (q.type === "design") return Boolean(v) && designExamples.every(name => Number(v[name]) >= 1 && Number(v[name]) <= 5);
+      if (q.type === "chess") return Boolean(v?.path);
+      if (q.type === "neural") {
+        const tools = getAnswer("block8", "tools", {});
+        return neuralTools.every(name => {
+          const t = tools[name];
+          return t && (!t.used || (Number(t.rating) >= 1 && Number(t.rating) <= 5));
+        });
+      }
+      if (q.type === "plans") {
+        const p = getAnswer("block9", "q1", "");
+        if (!p) return false;
+        if (p === "Другое") return Boolean(getAnswer("block9", "q1_other", "").trim());
+        return true;
+      }
+      if (q.type === "interest") {
+        const p = getAnswer("block9", "q2", "");
+        if (!p) return false;
+        if (p === "Да" || p === "Скорее да") return Boolean(getAnswer("block9", "q2_budget", "").trim());
+        return true;
+      }
+      if (q.type === "contacts") {
+        const c = getAnswer("block10", "q1", {});
+        return Boolean(c.fio && c.email && c.phone);
+      }
+      if (q.type === "subscribe") return true;
+      return false;
+    }
+
+    function updateCompletion(){
+      const answered = questions.filter(isQuestionAnswered).length;
+      const total = questions.length;
+      const ratio = Math.round((answered / total) * 100);
+      document.getElementById("answeredCounter").textContent = `Заполнено: ${answered} / ${total}`;
+      document.getElementById("completionText").textContent = `Готовность: ${ratio}%`;
+    }
+
     function render(){
       if (state.submitted && state.submissionResult){ renderSuccess(); return; }
       const q = questions[state.current];
@@ -229,6 +308,7 @@
       document.getElementById("blockText").textContent = blockNames[q.block];
       document.getElementById("globalBar").style.width = `${((state.current + 1) / total) * 100}%`;
       renderBlockBar(q.block);
+      updateCompletion();
       prevBtn.disabled = state.current === 0;
       nextBtn.textContent = state.current === total - 1 ? "Отправить" : "Далее";
       screen.innerHTML = "";
@@ -237,6 +317,12 @@
       const title = document.createElement("h2"); title.textContent = q.title;
       const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = `${blockNames[q.block]} • отдельный экран`;
       screen.append(title, sub);
+
+      const status = document.createElement("div");
+      const answered = isQuestionAnswered(q);
+      status.className = `status-chip${answered ? " done" : ""}`;
+      status.textContent = answered ? "✓ Вопрос заполнен" : "• Требуется ответ";
+      screen.appendChild(status);
 
       if (q.type === "single") renderSingle(q);
       if (q.type === "multi") renderMulti(q);
@@ -535,7 +621,12 @@
       if (q.type==="longtext" && !String(v||"").trim()) return {ok:false,msg:"Поле обязательно."};
       if (q.type==="visual"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Заполните все карточки."}; }
       if (q.type==="match"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Соотнесите все термины."}; }
-      if (q.type==="order"){ if (!Array.isArray(v) || v.length !== 6 || v.some(x=>!x)) return {ok:false,msg:"Укажите порядок для каждого этапа."}; }
+      if (q.type==="order"){
+        if (!Array.isArray(v) || v.length !== 6 || v.some(x=>!x)) return {ok:false,msg:"Укажите порядок для каждого этапа."};
+        const numbers = v.map(Number);
+        if (numbers.some(x=>!Number.isInteger(x) || x < 1 || x > 6)) return {ok:false,msg:"Используйте целые номера от 1 до 6."};
+        if (new Set(numbers).size !== 6) return {ok:false,msg:"Каждый номер должен использоваться только один раз."};
+      }
       if (q.type==="article"){ if (!v || !v.length) return {ok:false,msg:"Выберите факторы качества печати."}; logEvent("article_answered", { after_read_seconds: state.answers.block2.article?.read_seconds || 0 }); }
       if (q.type==="stream"){ if (!v || Object.keys(v).length < 5) return {ok:false,msg:"Ответьте на все 5 кейсов."}; }
       if (q.type==="projects"){ if (!Array.isArray(state.answers.block3.projects) || state.answers.block3.projects.some(p=>!p.choice)) return {ok:false,msg:"Для каждого проекта выберите 👍 или 👎."}; }
@@ -555,11 +646,18 @@
         const p = getAnswer("block9","q1",""); if (!p) return {ok:false,msg:"Выберите вариант."}; if (p==="Другое" && !getAnswer("block9","q1_other","")) return {ok:false,msg:"Уточните вариант «Другое»."};
       }
       if (q.type==="interest"){
-        const p = getAnswer("block9","q2",""); if (!p) return {ok:false,msg:"Выберите вариант."}; if ((p==="Да"||p==="Скорее да") && !getAnswer("block9","q2_budget","")) return {ok:false,msg:"Укажите приемлемую сумму."};
+        const p = getAnswer("block9","q2","");
+        if (!p) return {ok:false,msg:"Выберите вариант."};
+        if (p==="Да"||p==="Скорее да") {
+          const budget = Number(getAnswer("block9","q2_budget",""));
+          if (!budget || budget <= 0) return {ok:false,msg:"Укажите приемлемую сумму (число больше 0)."};
+        }
       }
       if (q.type==="contacts"){
         const c = getAnswer("block10","q1",{});
         if (!c.fio || !c.email || !c.phone) return {ok:false,msg:"Заполните обязательные контактные поля."};
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) return {ok:false,msg:"Введите корректный email."};
+        if (!/^\+?[\d\s()\-]{7,20}$/.test(c.phone)) return {ok:false,msg:"Введите корректный телефон."};
       }
       return {ok:true};
     }
