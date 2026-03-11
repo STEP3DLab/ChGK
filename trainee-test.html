@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEP 3D — Модуль тестирования практикантов</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --text: #111318;
+      --muted: #647084;
+      --line: #e3e8f0;
+      --accent: #2563ff;
+      --accent-soft: #edf3ff;
+      --ok: #0f8b4c;
+      --danger: #cf2c2c;
+      --radius: 14px;
+      --shadow: 0 12px 24px rgba(10, 20, 40, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 14px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      animation: fade .25s ease;
+    }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+    .topline { display:flex; justify-content:space-between; align-items:center; gap:8px; color: var(--muted); font-size: 12px; }
+    .bar-wrap { height: 10px; background:#eef2fa; border-radius:999px; overflow:hidden; margin-top:8px; }
+    .bar { height:100%; background:var(--accent); width:0%; transition:width .25s ease; }
+    .block-bar { margin-top:8px; display:grid; grid-template-columns: repeat(10, 1fr); gap:4px; }
+    .block-seg { height:6px; border-radius:999px; background:#e6ecf8; }
+    .block-seg.active, .block-seg.done { background: var(--accent); }
+    h1,h2,h3,p { margin:0; }
+    h2 { font-size: 1.18rem; margin-bottom: 6px; }
+    .sub { color:var(--muted); font-size: 13px; margin-bottom: 14px; }
+    .options { display:grid; gap:10px; }
+    .opt {
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
+      cursor:pointer;
+      transition:.15s ease;
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .opt:hover { border-color:#cfd9ef; background:#fafcff; }
+    .opt.active { border-color: var(--accent); background: var(--accent-soft); }
+    .opt input { margin-top:3px; }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea, select {
+      width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:14px; background:#fff;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .grid-2 { display:grid; gap:10px; grid-template-columns:1fr; }
+    .actions { display:flex; gap:10px; justify-content:space-between; margin-top:10px; }
+    .btn {
+      border:1px solid var(--line); background:#fff; color:var(--text); border-radius:10px; padding:10px 14px; cursor:pointer;
+    }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color:#fff; }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+    .warn { color: var(--danger); font-size: 13px; margin-top:8px; }
+    .ok { color:var(--ok); }
+    .tiny { font-size:12px; color:var(--muted); }
+    .project-card, .rating-row, .match-row, .ordering-row, .neural-row { border:1px solid var(--line); border-radius:10px; padding:10px; }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .spaced { display:grid; gap:10px; }
+    @media (min-width: 768px) {
+      .app { padding: 24px; }
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <div class="topline">
+        <span id="progressText">Вопрос 1</span>
+        <span id="blockText">Блок 1</span>
+      </div>
+      <div class="bar-wrap"><div class="bar" id="globalBar"></div></div>
+      <div class="block-bar" id="blockBar"></div>
+    </section>
+
+    <section class="card" id="screen"></section>
+
+    <section class="card" id="navCard">
+      <div class="actions">
+        <button class="btn" id="prevBtn">Назад</button>
+        <button class="btn primary" id="nextBtn">Далее</button>
+      </div>
+      <p class="warn" id="warn"></p>
+      <p class="tiny">Автосохранение включено. Прогресс сохраняется локально.</p>
+    </section>
+  </main>
+
+  <script>
+    const GOOGLE_SHEET_ID = "ВСТАВИТЬ_ID_ТАБЛИЦЫ";
+    const APPS_SCRIPT_WEBAPP_URL = "ВСТАВИТЬ_URL_ВЕБ-ПРИЛОЖЕНИЯ";
+    const STORAGE_KEY = "step3d_test_state_v1";
+
+    const state = loadState() || {
+      current: 0,
+      submitted: false,
+      submissionResult: null,
+      answers: {
+        meta: { started_at: new Date().toISOString(), last_saved_at: null },
+        block1: {}, block2: { article: {} }, block3: { projects: [] }, block4: {}, block5: {}, block6: {}, block7: {}, block8: { tools: {} }, block9: {}, block10: {}
+      },
+      event_log: []
+    };
+
+    const projectCards = [
+      { id: "project1", title: "Создание скульптур посредством 3D-сканирования и аддитивных технологий" },
+      { id: "project2", title: "Разработка прототипов протезов, ортезов и реабилитационных изделий" },
+      { id: "project3", title: "Реверсивный инжиниринг и восстановление деталей" },
+      { id: "project4", title: "Промышленный дизайн корпусов, приборов и полезных изделий" },
+      { id: "project5", title: "Сувенирная, выставочная и брендированная продукция STEP 3D / РГСУ" }
+    ];
+    const designExamples = ["Braun SK 4", "Braun T3", "Arco Floor Lamp", "Eames Molded Plastic Chair", "Valentine Portable Typewriter", "Juicy Salif", "Kikkoman Soy Sauce Dispenser"];
+    const neuralTools = ["ChatGPT", "Gemini", "Kimi", "Qwen", "Llama"];
+
+    const questions = [
+      single("block1","q1","Начало работы над новой задачей",["Сначала самостоятельно разбираюсь в сути задачи, затем уточняю ключевые моменты","Пытаюсь сделать первый рабочий шаг, чтобы быстрее понять задачу на практике","Прошу дать общее объяснение и после этого приступаю к работе","Предпочитаю получить подробную инструкцию, прежде чем начинать","Затрудняюсь выбрать один вариант"]),
+      single("block1","q2","Работа при нескольких задачах одновременно",["Сначала определяю приоритетность задач и порядок их выполнения","Начинаю с той задачи, которая понятнее и быстрее продвигается","Стараюсь вести несколько задач параллельно","Обычно жду уточнения, какая задача сейчас основная","Затрудняюсь ответить"]),
+      single("block1","q3","Действия при обнаружении ошибки",["Сразу сообщаю об ошибке и предлагаю возможный способ её устранения","Сначала пытаюсь исправить её самостоятельно, затем при необходимости сообщаю","Сначала оцениваю, насколько ошибка существенна, и после этого принимаю решение","Предпочитаю не поднимать вопрос, пока ошибка не стала критичной","Затрудняюсь ответить"]),
+      multi("block1","q4","Взаимодействие в команде",["Мне важно понимать общую цель работы, а не только собственный участок","Я спокойно обсуждаю разные варианты решения","Я готов брать ответственность за отдельную часть общего результата","Мне легче работать, когда роли и задачи заранее распределены","Я предпочитаю больше самостоятельной работы и меньше обсуждений","Я спокойно воспринимаю замечания, если они помогают улучшить результат","Пока мне трудно оценить свой стиль командной работы"],3),
+      single("block1","q5","Отношение к замечаниям и правкам",["Обычно воспринимаю замечания спокойно, если они конкретны и помогают улучшить результат","В целом воспринимаю замечания нормально, хотя не всегда легко","Мне бывает трудно принимать замечания, даже если они обоснованны","Предпочитаю, чтобы мою работу исправляли как можно меньше","Затрудняюсь ответить"]),
+      single("block1","q6","Инициативность в работе",["Формулирую предложение и выношу его на обсуждение","Сначала стараюсь проверить идею на практике, затем показываю результат","Обычно отмечаю это для себя, но без прямого запроса не вмешиваюсь","Скорее обсуждаю это неформально, чем предлагаю как рабочее решение","Затрудняюсь ответить"]),
+      single("block1","q7","Риск несоблюдения срока",["Заранее предупреждаю и предлагаю возможный вариант решения","Сообщаю о проблеме, когда становится понятно, что срок не удастся выдержать","Стараюсь до последнего решить ситуацию самостоятельно, не сообщая заранее","Рассчитываю, что ситуацию удастся урегулировать без отдельного обсуждения","Затрудняюсь ответить"]),
+      multi("block2","q1","Практический опыт",["Самостоятельно создавал(а) 3D-модели","Подготавливал(а) модели к 3D-печати в слайсере","Работал(а) с 3D-принтером на практике","Выполнял(а) 3D-сканирование","Обрабатывал(а) результаты 3D-сканирования","Работал(а) с размерами, привязками и точной геометрией в CAD","Читал(а) чертежи или техническую документацию","Выполнял(а) визуализацию моделей или проектов","Наблюдал(а) эти процессы, но сам(а) почти не выполнял(а)","Пока не имею практического опыта в перечисленных направлениях"],null),
+      visualQuestion(),
+      matchingQuestion(),
+      orderingQuestion(),
+      articleFactorQuestion(),
+      streamNormQuestion(),
+      textInputQuestion("block2","q7","Как называется формат файла, который чаще всего используют для передачи полигональной 3D-модели на печать?","Напишите ответ (например: STL)", true),
+      projectQuestion(),
+      longTextQuestion("block3","q6","Какая практика представляется вам наиболее интересной, чему именно вы хотели бы научиться и в каком формате вам наиболее комфортно работать?"),
+      laborQuestion(),
+      assignmentQuestion(),
+      designGalleryQuestion(),
+      chessQuestion(),
+      single("block8","q1","Как часто вы используете нейросети?",["Каждый день","Несколько раз в неделю","Несколько раз в месяц","Редко","Практически не использую"]),
+      neuralRatingsQuestion(),
+      collegePlansQuestion(),
+      interestQuestion(),
+      contactsQuestion(),
+      subscribeQuestion()
+    ];
+
+    const blockNames = {block1:"Блок 1",block2:"Блок 2",block3:"Блок 3",block4:"Блок 4",block5:"Блок 5",block6:"Блок 6",block7:"Блок 7",block8:"Блок 8",block9:"Блок 9",block10:"Блок 10"};
+
+    function single(block, key, title, options){ return {type:"single", block, key, title, options}; }
+    function multi(block, key, title, options, max){ return {type:"multi", block, key, title, options, max}; }
+    function textInputQuestion(block,key,title,placeholder,required){ return {type:"text", block,key,title,placeholder, required}; }
+    function longTextQuestion(block,key,title){ return {type:"longtext", block,key,title}; }
+    function visualQuestion(){ return { type:"visual", block:"block2", key:"q2", title:"Распознавание оборудования и цифровых объектов", items:["Карточка 1","Карточка 2","Карточка 3","Карточка 4","Карточка 5","Карточка 6"], options:["3D-принтер","3D-сканер","Штангенциркуль","Слайсер","Полигональная сетка","Поддержки","Не знаю / не могу определить"]}; }
+    function matchingQuestion(){ return {type:"match",block:"block2",key:"q3",title:"Соотнесение термина и определения",terms:["STL","Слайсер","Поддержки","Точность","Реверсивный инжиниринг","3D-сканирование"],definitions:["Программа, предназначенная для подготовки модели к печати","Формат файла, используемый для представления геометрии полигональной модели","Вспомогательные элементы, необходимые для печати нависающих участков","Степень соответствия размеров и формы заданным параметрам","Процесс восстановления изделия или его цифровой модели по исходному объекту, измерениям или цифровым данным","Получение цифровой формы реального объекта с помощью специализированных средств","Не знаю / затрудняюсь соотнести"]}; }
+    function orderingQuestion(){ return {type:"order",block:"block2",key:"q4",title:"Этапы реверсивного инжиниринга в CAD",steps:["Получение исходной геометрии объекта","Подготовка и очистка данных сканирования","Совмещение фрагментов и формирование целостной цифровой модели","Построение CAD-модели на основе полученных данных","Проверка размеров и геометрии","Подготовка итоговой модели к дальнейшему использованию"]}; }
+    function articleFactorQuestion(){ return {type:"article",block:"block2",key:"q5",title:"Факторы, влияющие на качество 3D-печати",options:["Ориентация модели","Поддержки","Толщина слоя","Скорость печати","Материал","Геометрия модели","Устойчивость модели на платформе","Цвет интерфейса программы","Не знаю / не сталкивался(ась) с этим на практике"]}; }
+    function streamNormQuestion(){ return {type:"stream",block:"block2",key:"q6",title:"Рубрика “Стрем” или “Норм”",cases:["Печать “на авось” без проверки поддержек","Очистка скана перед дальнейшей работой","CAD-модель после реверса без проверки размеров","Использование чужой модели без указания источника","Честное сообщение о необходимости дополнительной проверки модели"],options:["Стрем","Норм"]}; }
+    function projectQuestion(){ return {type:"projects",block:"block3",key:"q1_5",title:"Интерес к проектам Технопарка"}; }
+    function laborQuestion(){ return {type:"labor",block:"block4",key:"q1_5",title:"Оценка трудоёмкости и стоимости",tasks:[
+      "Простая 3D-модель по образцу",
+      "Подготовка готовой STL-модели к печати",
+      "Реверсивный инжиниринг простой детали",
+      "Обработка результата 3D-сканирования",
+      "Небольшой проект от идеи до модели"
+    ]}; }
+    function assignmentQuestion(){ return {type:"assignment",block:"block5",key:"q1",title:"Выполнение CAD-модели по размерам"}; }
+    function designGalleryQuestion(){ return {type:"design",block:"block6",key:"q1_7",title:"Галерея примеров промышленного дизайна"}; }
+    function chessQuestion(){ return {type:"chess",block:"block7",key:"q1",title:"Шахматы, логика и форма"}; }
+    function neuralRatingsQuestion(){ return {type:"neural",block:"block8",key:"q2",title:"Пользовались ли вы этими нейросетями и как бы вы их оценили?"}; }
+    function collegePlansQuestion(){ return {type:"plans",block:"block9",key:"q1",title:"Какие у вас планы после колледжа?"}; }
+    function interestQuestion(){ return {type:"interest",block:"block9",key:"q2",title:"Интерес к бакалавриату по промышленному дизайну"}; }
+    function contactsQuestion(){ return {type:"contacts",block:"block10",key:"q1",title:"Контакты"}; }
+    function subscribeQuestion(){ return {type:"subscribe",block:"block10",key:"q2",title:"STEP 3D Lab"}; }
+
+    function saveState(){ state.answers.meta.last_saved_at = new Date().toISOString(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function loadState(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; } }
+    function logEvent(type, payload={}){ state.event_log.push({ type, payload, ts: new Date().toISOString() }); saveState(); }
+
+    const screen = document.getElementById("screen");
+    const warn = document.getElementById("warn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    prevBtn.addEventListener("click",()=>{ if (state.current>0){ state.current--; render(); saveState(); } });
+    nextBtn.addEventListener("click", async ()=>{
+      warn.textContent = "";
+      const q = questions[state.current];
+      const valid = validate(q);
+      if (!valid.ok){ warn.textContent = valid.msg; return; }
+      if (state.current === questions.length - 1){
+        await finalSubmit();
+        return;
+      }
+      state.current++;
+      render();
+      saveState();
+    });
+
+    function setAnswer(block,key,value){ state.answers[block][key] = value; saveState(); }
+    function getAnswer(block,key,def){ return state.answers[block][key] ?? def; }
+
+    function render(){
+      if (state.submitted && state.submissionResult){ renderSuccess(); return; }
+      const q = questions[state.current];
+      const total = questions.length;
+      document.getElementById("progressText").textContent = `Вопрос ${state.current + 1} из ${total}`;
+      document.getElementById("blockText").textContent = blockNames[q.block];
+      document.getElementById("globalBar").style.width = `${((state.current + 1) / total) * 100}%`;
+      renderBlockBar(q.block);
+      prevBtn.disabled = state.current === 0;
+      nextBtn.textContent = state.current === total - 1 ? "Отправить" : "Далее";
+      screen.innerHTML = "";
+      warn.textContent = "";
+
+      const title = document.createElement("h2"); title.textContent = q.title;
+      const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = `${blockNames[q.block]} • отдельный экран`;
+      screen.append(title, sub);
+
+      if (q.type === "single") renderSingle(q);
+      if (q.type === "multi") renderMulti(q);
+      if (q.type === "text") renderText(q);
+      if (q.type === "longtext") renderLongtext(q);
+      if (q.type === "visual") renderVisual(q);
+      if (q.type === "match") renderMatch(q);
+      if (q.type === "order") renderOrder(q);
+      if (q.type === "article") renderArticle(q);
+      if (q.type === "stream") renderStream(q);
+      if (q.type === "projects") renderProjects(q);
+      if (q.type === "labor") renderLabor(q);
+      if (q.type === "assignment") renderAssignment(q);
+      if (q.type === "design") renderDesign(q);
+      if (q.type === "chess") renderChess(q);
+      if (q.type === "neural") renderNeural(q);
+      if (q.type === "plans") renderPlans(q);
+      if (q.type === "interest") renderInterest(q);
+      if (q.type === "contacts") renderContacts(q);
+      if (q.type === "subscribe") renderSubscribe(q);
+    }
+
+    function renderBlockBar(currentBlock){
+      const el = document.getElementById("blockBar"); el.innerHTML = "";
+      Object.keys(blockNames).forEach((b, idx)=>{
+        const seg = document.createElement("div");
+        seg.className = "block-seg";
+        const currentIdx = Object.keys(blockNames).indexOf(currentBlock);
+        if (idx < currentIdx) seg.classList.add("done");
+        if (idx === currentIdx) seg.classList.add("active");
+        el.appendChild(seg);
+      });
+    }
+
+    function renderSingle(q){
+      const value = getAnswer(q.block,q.key,"");
+      const wrap = document.createElement("div"); wrap.className = "options";
+      q.options.forEach(opt=>{
+        const label = document.createElement("label"); label.className = "opt" + (value===opt?" active":"");
+        label.innerHTML = `<input type="radio" name="${q.key}" ${value===opt?"checked":""}/> <span>${opt}</span>`;
+        label.addEventListener("click",()=>setAnswer(q.block,q.key,opt));
+        wrap.appendChild(label);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderMulti(q){
+      const arr = getAnswer(q.block,q.key,[]);
+      const wrap = document.createElement("div"); wrap.className = "options";
+      q.options.forEach(opt=>{
+        const active = arr.includes(opt);
+        const label = document.createElement("label"); label.className = "opt" + (active?" active":"");
+        label.innerHTML = `<input type="checkbox" ${active?"checked":""}/> <span>${opt}</span>`;
+        label.addEventListener("click",(e)=>{ e.preventDefault();
+          let next = [...arr];
+          if (next.includes(opt)) next = next.filter(v=>v!==opt);
+          else {
+            if (q.max && next.length >= q.max){ warn.textContent = `Можно выбрать максимум ${q.max}`; return; }
+            next.push(opt);
+          }
+          setAnswer(q.block,q.key,next); render();
+        });
+        wrap.appendChild(label);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderText(q){
+      const input = document.createElement("input"); input.type = "text"; input.placeholder = q.placeholder; input.value = getAnswer(q.block,q.key,"");
+      input.addEventListener("input",()=>setAnswer(q.block,q.key,input.value.trim()));
+      screen.appendChild(input);
+    }
+    function renderLongtext(q){
+      const t = document.createElement("textarea"); t.value = getAnswer(q.block,q.key,""); t.placeholder = "Ваш развернутый ответ";
+      t.addEventListener("input",()=>setAnswer(q.block,q.key,t.value.trim()));
+      screen.appendChild(t);
+    }
+    function renderVisual(q){
+      const obj = getAnswer(q.block,q.key,{});
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      q.items.forEach((it,idx)=>{
+        const row = document.createElement("div"); row.className = "rating-row";
+        const sel = document.createElement("select");
+        sel.innerHTML = `<option value="">Выберите вариант</option>${q.options.map(v=>`<option ${obj[`item${idx+1}`]===v?"selected":""}>${v}</option>`).join("")}`;
+        sel.addEventListener("change",()=>{ obj[`item${idx+1}`]=sel.value; setAnswer(q.block,q.key,obj); });
+        row.innerHTML = `<div class='tiny'>${it}</div>`; row.appendChild(sel); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderMatch(q){
+      const obj = getAnswer(q.block,q.key,{});
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      q.terms.forEach(term=>{
+        const row = document.createElement("div"); row.className = "match-row";
+        const sel = document.createElement("select");
+        sel.innerHTML = `<option value="">Выберите определение</option>${q.definitions.map(v=>`<option ${obj[term]===v?"selected":""}>${v}</option>`).join("")}`;
+        sel.addEventListener("change",()=>{ obj[term] = sel.value; setAnswer(q.block,q.key,obj); });
+        row.innerHTML = `<strong>${term}</strong>`; row.appendChild(sel); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderOrder(q){
+      const val = getAnswer(q.block,q.key,q.steps.map((_,i)=>i+1));
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      q.steps.forEach((step,idx)=>{
+        const row = document.createElement("div"); row.className = "ordering-row row";
+        const input = document.createElement("input"); input.type="number"; input.min=1; input.max=q.steps.length; input.value=val[idx]||""; input.style.width="84px";
+        input.addEventListener("input",()=>{ val[idx]=Number(input.value); setAnswer(q.block,q.key,val); });
+        row.innerHTML = `<span>${step}</span>`; row.appendChild(input); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderArticle(q){
+      renderMulti(q);
+      const article = state.answers.block2.article || {};
+      const btn = document.createElement("button"); btn.className = "btn"; btn.textContent = "Прочитать статью по теме — 5 минут";
+      btn.addEventListener("click",()=>{
+        article.opened_at = new Date().toISOString();
+        article.opens = (article.opens || 0) + 1;
+        state.answers.block2.article = article;
+        logEvent("article_open", { question: "B2.Q5", opens: article.opens });
+        window.open("https://en.wikipedia.org/wiki/3D_printing", "_blank", "noopener");
+      });
+      const endBtn = document.createElement("button"); endBtn.className = "btn"; endBtn.textContent = "Я закончил(а) чтение";
+      endBtn.addEventListener("click",()=>{
+        const now = Date.now();
+        const start = article.opened_at ? Date.parse(article.opened_at) : now;
+        article.read_seconds = Math.max(0, Math.round((now - start)/1000));
+        article.closed_at = new Date(now).toISOString();
+        state.answers.block2.article = article;
+        logEvent("article_read_finished", { seconds: article.read_seconds });
+      });
+      screen.append(btn, endBtn);
+      const hint = document.createElement("p"); hint.className="tiny"; hint.textContent = `Открытий: ${article.opens||0}, длительность чтения: ${article.read_seconds||0} сек.`;
+      screen.appendChild(hint);
+    }
+    function renderStream(q){
+      const obj = getAnswer(q.block,q.key,{});
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      q.cases.forEach((it,idx)=>{
+        const row = document.createElement("div"); row.className="rating-row";
+        row.innerHTML = `<div>${idx+1}. ${it}</div>`;
+        q.options.forEach(opt=>{
+          const b = document.createElement("button"); b.className = "btn" + (obj[`case${idx+1}`]===opt?" primary":""); b.textContent = opt;
+          b.addEventListener("click",()=>{ obj[`case${idx+1}`]=opt; setAnswer(q.block,q.key,obj); render(); });
+          row.appendChild(b);
+        });
+        wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderProjects(){
+      const arr = getAnswer("block3","projects", projectCards.map(p=>({ project_id:p.id, choice:"", confident:false })));
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      projectCards.forEach((p,idx)=>{
+        const row = document.createElement("div"); row.className="project-card";
+        const item = arr[idx] || { project_id:p.id, choice:"", confident:false };
+        row.innerHTML = `<strong>${idx+1}. ${p.title}</strong>`;
+        const like = document.createElement("button"); like.className = "btn" + (item.choice==="like"?" primary":""); like.textContent = "👍 Хочу попробовать";
+        const dislike = document.createElement("button"); dislike.className = "btn" + (item.choice==="dislike"?" primary":""); dislike.textContent = "👎 Не хочу";
+        const cbox = document.createElement("label"); cbox.className="row tiny"; cbox.innerHTML = `<input type='checkbox' ${item.confident?"checked":""}/> ⭐ Чувствую себя в этом уверенно`;
+        like.addEventListener("click",()=>{ item.choice="like"; arr[idx]=item; setAnswer("block3","projects",arr); logEvent("project_reaction", { project_id: p.id, choice: "like" }); render(); });
+        dislike.addEventListener("click",()=>{ item.choice="dislike"; arr[idx]=item; setAnswer("block3","projects",arr); logEvent("project_reaction", { project_id: p.id, choice: "dislike" }); render(); });
+        cbox.querySelector("input").addEventListener("change",(e)=>{ item.confident=e.target.checked; arr[idx]=item; setAnswer("block3","projects",arr); logEvent("project_confidence", { project_id: p.id, confident: item.confident }); });
+        row.append(like, dislike, cbox); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderLabor(q){
+      const obj = getAnswer(q.block,q.key,{});
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      q.tasks.forEach((task,idx)=>{
+        const key = `task${idx+1}`;
+        const val = obj[key] || { hours:"", cost:"" };
+        const row = document.createElement("div"); row.className = "rating-row";
+        row.innerHTML = `<strong>${task}</strong>`;
+        const grid = document.createElement("div"); grid.className = "grid-2";
+        const h = document.createElement("input"); h.type="number"; h.min=0; h.placeholder="Время, часов"; h.value=val.hours;
+        const c = document.createElement("input"); c.type="number"; c.min=0; c.placeholder="Стоимость, рублей"; c.value=val.cost;
+        h.addEventListener("input",()=>{ val.hours = h.value; obj[key]=val; setAnswer(q.block,q.key,obj); });
+        c.addEventListener("input",()=>{ val.cost = c.value; obj[key]=val; setAnswer(q.block,q.key,obj); });
+        grid.append(h,c); row.appendChild(grid); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderAssignment(){
+      const v = getAnswer("block5","q1",{ sent_files:false, finish_clicked:false });
+      const check = document.createElement("label"); check.className = "opt" + (v.sent_files?" active":"");
+      check.innerHTML = `<input type='checkbox' ${v.sent_files?"checked":""}/> <span>Подтверждаю отправку STL и STP на technopark@rgsu.net</span>`;
+      check.addEventListener("click",(e)=>{ e.preventDefault(); v.sent_files=!v.sent_files; setAnswer("block5","q1",v); logEvent("assignment21_confirmed", { sent_files: v.sent_files }); render(); });
+      const btn = document.createElement("button"); btn.className = "btn" + (v.finish_clicked?" primary":""); btn.textContent = "Завершить задание";
+      btn.addEventListener("click",()=>{ v.finish_clicked = true; setAnswer("block5","q1",v); logEvent("assignment21_finish_click", {}); render(); });
+      const info = document.createElement("p"); info.className="tiny"; info.textContent = "Тема письма: ФИО, задание 21, практика.";
+      screen.append(check, btn, info);
+    }
+    function renderDesign(){
+      const obj = getAnswer("block6","q1_7",{});
+      const wrap = document.createElement("div"); wrap.className="spaced";
+      designExamples.forEach((name,idx)=>{
+        const row = document.createElement("div"); row.className="rating-row row";
+        row.innerHTML = `<strong>${idx+1}. ${name}</strong>`;
+        for (let i=1;i<=5;i++){
+          const b = document.createElement("button"); b.className = "btn" + (obj[name]===i?" primary":""); b.textContent=String(i);
+          b.addEventListener("click",()=>{ obj[name]=i; setAnswer("block6","q1_7",obj); logEvent("design_rating", { object: name, rating: i }); render(); });
+          row.appendChild(b);
+        }
+        wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderChess(){
+      const v = getAnswer("block7","q1",{ path:"", chess_correct:null, chess_time_sec:"", model_time_sec:"", started_at:null });
+      if (!v.started_at) { v.started_at = new Date().toISOString(); setAnswer("block7","q1",v); }
+      const a = document.createElement("button"); a.className = "btn" + (v.path==="chess"?" primary":""); a.textContent="Решить шахматную задачу";
+      const b = document.createElement("button"); b.className = "btn" + (v.path==="cup"?" primary":""); b.textContent="Создать 3D-модель кубка Технопарка по шахматам";
+      a.addEventListener("click",()=>{ v.path="chess"; setAnswer("block7","q1",v); logEvent("chess_path_selected", { path:"chess" }); render(); });
+      b.addEventListener("click",()=>{ v.path="cup"; setAnswer("block7","q1",v); logEvent("chess_path_selected", { path:"cup" }); render(); });
+      screen.append(a,b);
+      const note = document.createElement("p"); note.className="tiny"; note.textContent="Общий лимит: 60 минут."; screen.appendChild(note);
+      if (v.path==="chess"){
+        const correct = document.createElement("label"); correct.className="row tiny"; correct.innerHTML = `<input type='checkbox' ${v.chess_correct?"checked":""}/> Шахматная задача решена верно`;
+        const ct = document.createElement("input"); ct.type="number"; ct.placeholder="Время шахматной задачи, сек"; ct.value=v.chess_time_sec;
+        const mt = document.createElement("input"); mt.type="number"; mt.placeholder="Время 3D-моделирования, сек"; mt.value=v.model_time_sec;
+        correct.querySelector("input").addEventListener("change",(e)=>{ v.chess_correct=e.target.checked; setAnswer("block7","q1",v); });
+        ct.addEventListener("input",()=>{ v.chess_time_sec=ct.value; setAnswer("block7","q1",v); });
+        mt.addEventListener("input",()=>{ v.model_time_sec=mt.value; setAnswer("block7","q1",v); });
+        screen.append(correct, ct, mt);
+      }
+    }
+    function renderNeural(){
+      const tools = getAnswer("block8","tools", {});
+      const wrap = document.createElement("div"); wrap.className = "spaced";
+      neuralTools.forEach(name=>{
+        const item = tools[name] || { used:false, rating:"" };
+        const row = document.createElement("div"); row.className = "neural-row";
+        row.innerHTML = `<strong>${name}</strong>`;
+        const used = document.createElement("label"); used.className="row tiny"; used.innerHTML = `<input type='checkbox' ${item.used?"checked":""}/> Пользовался(ась)`;
+        const rating = document.createElement("input"); rating.type="number"; rating.min=1; rating.max=5; rating.placeholder="Рейтинг 1-5"; rating.value=item.rating;
+        rating.disabled = !item.used;
+        used.querySelector("input").addEventListener("change",(e)=>{ item.used=e.target.checked; if(!item.used) item.rating=""; tools[name]=item; setAnswer("block8","tools",tools); logEvent("neural_usage", { tool:name, used:item.used }); render(); });
+        rating.addEventListener("input",()=>{ item.rating=rating.value; tools[name]=item; setAnswer("block8","tools",tools); logEvent("neural_rating", { tool:name, rating: item.rating }); });
+        row.append(used, rating); wrap.appendChild(row);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderPlans(){
+      const options = ["Работа по специальности","Работа не по специальности","Поступление в институт","Армия","Пока не решил(а)","Другое"];
+      renderSingle({ block:"block9", key:"q1", options, title:""});
+      const v = getAnswer("block9","q1","");
+      if (v==="Другое"){
+        const inp = document.createElement("input"); inp.type="text"; inp.placeholder="Уточните"; inp.value = getAnswer("block9","q1_other","");
+        inp.addEventListener("input",()=>setAnswer("block9","q1_other",inp.value));
+        screen.appendChild(inp);
+      }
+    }
+    function renderInterest(){
+      const options = ["Да","Скорее да","Скорее нет","Нет","Не знаю"];
+      renderSingle({ block:"block9", key:"q2", options, title:""});
+      const v = getAnswer("block9","q2","");
+      if (v==="Да" || v==="Скорее да"){
+        const inp = document.createElement("input"); inp.type="number"; inp.placeholder="Приемлемая сумма за обучение в год (₽)"; inp.value = getAnswer("block9","q2_budget","");
+        inp.addEventListener("input",()=>setAnswer("block9","q2_budget",inp.value));
+        screen.appendChild(inp);
+      }
+    }
+    function renderContacts(){
+      const fields = [
+        ["fio","ФИО","text",true],
+        ["email","Электронная почта","email",true],
+        ["phone","Телефон","tel",true],
+        ["telegram","Telegram username (необязательно)","text",false]
+      ];
+      const obj = getAnswer("block10","q1",{});
+      const wrap = document.createElement("div"); wrap.className="spaced";
+      fields.forEach(([k,p,t])=>{
+        const i = document.createElement("input"); i.type=t; i.placeholder=p; i.value=obj[k]||"";
+        i.addEventListener("input",()=>{ obj[k]=i.value.trim(); setAnswer("block10","q1",obj); });
+        wrap.appendChild(i);
+      });
+      screen.appendChild(wrap);
+    }
+    function renderSubscribe(){
+      const obj = getAnswer("block10","q2",{ subscribed:false, later:false });
+      const open = document.createElement("button"); open.className="btn"; open.textContent="Открыть STEP 3D Lab";
+      open.addEventListener("click",()=>window.open("https://t.me/STEP_3D_Lab","_blank","noopener"));
+      const s = document.createElement("label"); s.className="opt" + (obj.subscribed?" active":""); s.innerHTML = `<input type='checkbox' ${obj.subscribed?"checked":""}/> Подписался(ась)`;
+      const l = document.createElement("label"); l.className="opt" + (obj.later?" active":""); l.innerHTML = `<input type='checkbox' ${obj.later?"checked":""}/> Открою позже`;
+      s.addEventListener("click",(e)=>{e.preventDefault(); obj.subscribed=!obj.subscribed; setAnswer("block10","q2",obj); render();});
+      l.addEventListener("click",(e)=>{e.preventDefault(); obj.later=!obj.later; setAnswer("block10","q2",obj); render();});
+      screen.append(open,s,l);
+    }
+
+    function validate(q){
+      const v = getAnswer(q.block,q.key,null);
+      if (q.type==="single" && !v) return {ok:false,msg:"Выберите один вариант."};
+      if (q.type==="multi" && (!Array.isArray(v) || !v.length)) return {ok:false,msg:"Выберите хотя бы один вариант."};
+      if (q.type==="text" && q.required && !String(v||"").trim()) return {ok:false,msg:"Введите ответ."};
+      if (q.type==="longtext" && !String(v||"").trim()) return {ok:false,msg:"Поле обязательно."};
+      if (q.type==="visual"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Заполните все карточки."}; }
+      if (q.type==="match"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Соотнесите все термины."}; }
+      if (q.type==="order"){ if (!Array.isArray(v) || v.length !== 6 || v.some(x=>!x)) return {ok:false,msg:"Укажите порядок для каждого этапа."}; }
+      if (q.type==="article"){ if (!v || !v.length) return {ok:false,msg:"Выберите факторы качества печати."}; logEvent("article_answered", { after_read_seconds: state.answers.block2.article?.read_seconds || 0 }); }
+      if (q.type==="stream"){ if (!v || Object.keys(v).length < 5) return {ok:false,msg:"Ответьте на все 5 кейсов."}; }
+      if (q.type==="projects"){ if (!Array.isArray(state.answers.block3.projects) || state.answers.block3.projects.some(p=>!p.choice)) return {ok:false,msg:"Для каждого проекта выберите 👍 или 👎."}; }
+      if (q.type==="labor"){
+        const obj = v || {}; for (let i=1;i<=5;i++){ if (!obj[`task${i}`]?.hours || !obj[`task${i}`]?.cost) return {ok:false,msg:"Заполните время и стоимость для всех заданий."}; }
+      }
+      if (q.type==="assignment"){
+        const a = v || {}; if (!a.sent_files || !a.finish_clicked) return {ok:false,msg:"Подтвердите отправку файлов и нажмите «Завершить задание»."};
+      }
+      if (q.type==="design"){ if (!v || designExamples.some(n=>!v[n])) return {ok:false,msg:"Оцените все объекты от 1 до 5."}; }
+      if (q.type==="chess"){ if (!v || !v.path) return {ok:false,msg:"Выберите траекторию."}; }
+      if (q.type==="neural"){
+        const tools = getAnswer("block8","tools",{});
+        for (const name of neuralTools){ const t = tools[name]; if (!t) return {ok:false,msg:"Заполните все строки по нейросетям."}; if (t.used && (!t.rating || t.rating<1 || t.rating>5)) return {ok:false,msg:`Укажите рейтинг 1-5 для ${name}.`}; }
+      }
+      if (q.type==="plans"){
+        const p = getAnswer("block9","q1",""); if (!p) return {ok:false,msg:"Выберите вариант."}; if (p==="Другое" && !getAnswer("block9","q1_other","")) return {ok:false,msg:"Уточните вариант «Другое»."};
+      }
+      if (q.type==="interest"){
+        const p = getAnswer("block9","q2",""); if (!p) return {ok:false,msg:"Выберите вариант."}; if ((p==="Да"||p==="Скорее да") && !getAnswer("block9","q2_budget","")) return {ok:false,msg:"Укажите приемлемую сумму."};
+      }
+      if (q.type==="contacts"){
+        const c = getAnswer("block10","q1",{});
+        if (!c.fio || !c.email || !c.phone) return {ok:false,msg:"Заполните обязательные контактные поля."};
+      }
+      return {ok:true};
+    }
+
+    async function finalSubmit(){
+      if (state.submitted) { warn.textContent = "Анкета уже отправлена."; return; }
+      nextBtn.disabled = true;
+      try {
+        const payload = {
+          source: "step3d_frontend_mvp",
+          google_sheet_id: GOOGLE_SHEET_ID,
+          submitted_at: new Date().toISOString(),
+          answers: state.answers,
+          event_log: state.event_log
+        };
+        const res = await fetch(APPS_SCRIPT_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || "Ошибка отправки");
+        state.submitted = true;
+        state.submissionResult = data;
+        saveState();
+        renderSuccess();
+      } catch (e){
+        warn.textContent = `Не удалось отправить: ${e.message}`;
+      } finally {
+        nextBtn.disabled = false;
+      }
+    }
+
+    function renderSuccess(){
+      document.getElementById("navCard").style.display = "none";
+      const result = state.submissionResult;
+      screen.innerHTML = `
+        <h2>Готово! Анкета успешно отправлена.</h2>
+        <p class="sub">Сохраните ваш уникальный код участника.</p>
+        <div class="card" style="padding:14px; margin-top:10px;">
+          <h3 id="publicCode">${result.public_code}</h3>
+          <p class="tiny">Internal UUID: ${result.internal_uuid}</p>
+          <button class="btn primary" id="copyBtn">Скопировать код</button>
+          <button class="btn" id="clearBtn">Очистить локальную сессию</button>
+        </div>
+      `;
+      document.getElementById("copyBtn").addEventListener("click", async ()=>{
+        await navigator.clipboard.writeText(result.public_code);
+      });
+      document.getElementById("clearBtn").addEventListener("click", ()=>{
+        localStorage.removeItem(STORAGE_KEY);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
