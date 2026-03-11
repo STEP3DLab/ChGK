@@ -114,10 +114,17 @@ export const setBadge = (text) => {
 export const showToast = (message, tone = "info") => {
   const toast = qs("#toast");
   if (!toast) return;
+  if (toast._hideTimer) {
+    clearTimeout(toast._hideTimer);
+  }
   toast.textContent = message;
   toast.dataset.tone = tone;
+  toast.setAttribute("aria-label", message);
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2200);
+  toast._hideTimer = setTimeout(() => {
+    toast.classList.remove("show");
+    toast._hideTimer = null;
+  }, 2200);
 };
 
 export const normalizeSessionId = (value) =>
