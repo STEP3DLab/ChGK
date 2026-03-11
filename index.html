@@ -2,145 +2,1106 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Минималистичный браузерный режим для синхронной игры «Что? Где? Когда?» с ведущим, командами и таймером." />
-  <meta name="theme-color" content="#0b0d12" />
-  <meta name="color-scheme" content="dark" />
-  <title>Что? Где? Step3D!</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <script src="vendor/qrcode.min.js" defer></script>
-  <script type="module" src="js/ui.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Технопарк РГСУ — Распределение практикантов</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-muted: #f9fafb;
+      --text: #16181d;
+      --text-muted: #5c6471;
+      --border: #e5e8ef;
+      --accent: #1f64ff;
+      --accent-soft: #eaf0ff;
+      --shadow: 0 10px 30px rgba(15, 25, 45, 0.08);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --status-open: #e8f8ee;
+      --status-open-text: #1f7a3f;
+      --status-limited: #fff6e8;
+      --status-limited-text: #9d5c00;
+      --status-progress: #edf2ff;
+      --status-progress-text: #3452a4;
+      --status-strong: #ffeef0;
+      --status-strong-text: #a42b3b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(246, 247, 249, 0.85);
+      border-bottom: 1px solid rgba(229, 232, 239, 0.7);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      min-height: 72px;
+      padding: 10px 0;
+    }
+
+    .brand-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .brand-subtitle {
+      font-size: .82rem;
+      color: var(--text-muted);
+    }
+
+    .view-switch {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .switch-btn,
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: .2s ease;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .switch-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #d6e2ff;
+      font-weight: 600;
+    }
+
+    .btn {
+      border-radius: var(--radius-md);
+      border-color: var(--border);
+      background: var(--surface);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #124ed4;
+      border-color: #124ed4;
+    }
+
+    .hero {
+      margin: 24px 0;
+      padding: 34px;
+      border-radius: var(--radius-xl);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      margin: 14px 0 24px;
+      max-width: 760px;
+      color: var(--text-muted);
+      font-size: 1.02rem;
+    }
+
+    .hero-actions,
+    .profile-actions,
+    .filters-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      background: var(--surface-muted);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 6px;
+    }
+
+    section { margin-bottom: 18px; }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+      letter-spacing: -0.01em;
+    }
+
+    .panel { padding: 20px; }
+
+    .grid-4,
+    .grid-filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .grid-filters { grid-template-columns: 2fr repeat(4, minmax(0,1fr)); }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .muted { color: var(--text-muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .95rem;
+    }
+
+    thead th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tbody tr {
+      animation: fadeUp .35s ease;
+    }
+
+    tbody tr:hover {
+      background: #fbfcff;
+    }
+
+    .project-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .project-desc { color: var(--text-muted); margin-bottom: 6px; }
+
+    .tags, .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag, .chip {
+      font-size: .78rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #4f5663;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: .79rem;
+      font-weight: 600;
+    }
+
+    .status-Набор\ открыт { background: var(--status-open); color: var(--status-open-text); }
+    .status-Осталось\ мало\ мест { background: var(--status-limited); color: var(--status-limited-text); }
+    .status-Идет\ работа { background: var(--status-progress); color: var(--status-progress-text); }
+    .status-Требуются\ сильные\ участники { background: var(--status-strong); color: var(--status-strong-text); }
+
+    .recommend { background: #ebf2ff; color: #2f5ecc; }
+
+    .table-actions, .choice-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      font-size: .82rem;
+      padding: 7px 10px;
+      border-radius: 9px;
+    }
+
+    .cards-grid {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .project-card {
+      padding: 16px;
+      transition: .2s ease;
+      animation: fadeUp .35s ease;
+    }
+
+    .project-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(15, 25, 45, 0.12);
+    }
+
+    .tasks {
+      margin: 10px 0;
+      padding-left: 17px;
+      color: #333;
+    }
+
+    .tasks li { margin-bottom: 4px; }
+
+    .project-card-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 24px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-muted);
+    }
+
+    .choices-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-item {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      background: #fff;
+    }
+
+    .footer {
+      margin: 30px 0 24px;
+      color: #616977;
+      text-align: center;
+      font-size: .92rem;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 14, 32, .34);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 200;
+    }
+
+    .overlay.open { display: flex; }
+
+    .modal {
+      width: min(760px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 30px 70px rgba(14, 20, 35, .25);
+      transform: translateY(10px) scale(.98);
+      opacity: 0;
+      animation: modalIn .2s ease forwards;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      padding: 16px 18px;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+
+    .toasts {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      gap: 8px;
+      z-index: 300;
+    }
+
+    .toast {
+      background: #111;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .9rem;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: toastIn .25s ease forwards;
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes toastIn { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+    @keyframes modalIn { to { opacity: 1; transform: translateY(0) scale(1);} }
+
+    @media (max-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .grid-filters { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .cards-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .header-inner { flex-wrap: wrap; }
+      .metrics { grid-template-columns: 1fr; }
+      .grid-4, .grid-filters, .cards-grid { grid-template-columns: 1fr; }
+      .hero { padding: 22px; }
+
+      #tableView thead { display: none; }
+      #tableView, #tableView tbody, #tableView tr, #tableView td {
+        display: block;
+        width: 100%;
+      }
+      #tableView tr {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        background: #fff;
+      }
+      #tableView td {
+        border: none;
+        border-bottom: 1px dashed var(--border);
+        padding: 8px 12px;
+      }
+      #tableView td:last-child { border-bottom: none; }
+      #tableView td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: .75rem;
+        color: var(--text-muted);
+        margin-bottom: 3px;
+      }
+    }
+  </style>
 </head>
-<body data-page="index">
-  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
-  <header class="site-header">
-    <div class="logo">
-      <img class="logo-mark" src="assets/icons/step3d-mark.svg" alt="Step3D" />
+<body>
+  <header class="header">
+    <div class="container header-inner">
       <div>
-        <h1 class="title glitch">Что? Где? Step3D!</h1>
-        <p class="subtitle">Синхронная игра для команд и ведущего</p>
+        <div class="brand-title">Технопарк РГСУ</div>
+        <div class="brand-subtitle">Распределение практикантов</div>
       </div>
-    </div>
-    <div class="header-actions">
-      <div class="badge" data-status-badge>
-        <span class="status-dot"></span>
-        <span>DEMO (Offline)</span>
+      <div class="view-switch" role="group" aria-label="Переключение режима отображения">
+        <button id="viewTableBtn" class="switch-btn active" type="button">Таблица</button>
+        <button id="viewCardsBtn" class="switch-btn" type="button">Карточки</button>
       </div>
+      <button id="goChoicesBtn" class="btn" type="button" aria-label="Перейти к разделу Мои выборы">Мои выборы</button>
     </div>
   </header>
 
-  <main id="main-content">
-    <div class="container">
-      <section class="card">
-        <div class="page-intro">
-          <h2>Добро пожаловать в Step3D</h2>
-          <p>Запускайте синхронную игру «Что? Где? Когда?» для ведущего и команд в один клик.</p>
-        </div>
-        <div class="stepper">
-          <div class="step">
-            <span class="step-label">Шаг 1</span>
-            <span class="step-title">Создайте сессию</span>
-            <span class="hint">Получите код и ссылку.</span>
-          </div>
-          <div class="step">
-            <span class="step-label">Шаг 2</span>
-            <span class="step-title">Подключите команды</span>
-            <span class="hint">Капитаны добавят вопросы.</span>
-          </div>
-          <div class="step">
-            <span class="step-label">Шаг 3</span>
-            <span class="step-title">Запускайте раунды</span>
-            <span class="hint">Следите за таймером и счетом.</span>
-          </div>
-        </div>
-      </section>
-      <section class="grid-2">
-        <article class="card">
-          <div class="card-header">
-            <div>
-              <h2>Создать игру</h2>
-              <p class="meta">Для ведущего и режиссуры игры</p>
-            </div>
-            <span class="status-pill info">Новый запуск</span>
-          </div>
-          <p>Ведущий открывает сессию, задаёт команды и запускает волчок.</p>
+  <main class="container">
+    <section class="hero" id="top">
+      <h1>Практика в проектах Технопарка РГСУ</h1>
+      <p>Выберите проект, отметьте интересные направления и отправьте заявку на участие в работе лаборатории.</p>
+      <div class="hero-actions">
+        <a href="#projectsSection" class="btn btn-primary">Смотреть проекты</a>
+        <a href="#myChoicesSection" class="btn">Мои выборы</a>
+      </div>
+      <div class="metrics">
+        <article class="metric"><strong>14 проектов</strong><span class="muted">Реальные задачи лаборатории</span></article>
+        <article class="metric"><strong>9 направлений</strong><span class="muted">От документации до веб-интерфейсов</span></article>
+        <article class="metric"><strong>Быстрая заявка</strong><span class="muted">Подайте участие за 1 минуту</span></article>
+      </div>
+    </section>
 
-          <button class="button primary" id="create-session">Создать игру (Ведущий)</button>
-          <p class="hint">После создания появится код и ссылка для участников.</p>
-        </article>
-        <article class="card">
-          <div class="card-header">
-            <div>
-              <h2>Присоединиться</h2>
-              <p class="meta">Для капитанов и участников</p>
-            </div>
-            <span class="status-pill success">Доступно</span>
-          </div>
-          <p>Участники заходят по коду сессии или сканируют QR.</p>
-          <ul class="helper-list">
-            <li>Капитаны отправляют вопросы.</li>
-            <li>Игроки видят таймер и счет.</li>
-            <li>Можно открыть вкладку «Экран для зала».</li>
-          </ul>
-          <a class="button secondary" href="join.html">Присоединиться (Участник)</a>
-          <p class="hint">Подойдёт как телефон, так и настольный компьютер.</p>
-        </article>
-      </section>
+    <section class="card panel" id="profileSection">
+      <h2 class="section-title">Профиль участника</h2>
+      <div class="grid-4">
+        <div>
+          <label for="profileId">Фамилия или ID</label>
+          <input id="profileId" type="text" placeholder="Например, Иванов / st-147" />
+        </div>
+        <div>
+          <label for="profileLevel">Уровень</label>
+          <select id="profileLevel">
+            <option value="Новичок">Новичок</option>
+            <option value="Технопарковец">Технопарковец</option>
+          </select>
+        </div>
+        <div>
+          <label for="profileDirection">Направление интереса</label>
+          <select id="profileDirection">
+            <option>Любое направление</option>
+            <option>3D-моделирование</option>
+            <option>3D-печать</option>
+            <option>3D-сканирование</option>
+            <option>Реверсивный инжиниринг</option>
+            <option>Промышленный дизайн</option>
+            <option>Веб-интерфейсы</option>
+            <option>Контент и визуальные материалы</option>
+            <option>Документация</option>
+            <option>Организационная помощь</option>
+          </select>
+        </div>
+        <div>
+          <label for="profileHours">Сколько часов в неделю готов уделять</label>
+          <select id="profileHours">
+            <option>2-4 часа</option>
+            <option>5-8 часов</option>
+            <option>9-12 часов</option>
+            <option>12+ часов</option>
+          </select>
+        </div>
+      </div>
+      <div class="profile-actions" style="margin-top:12px">
+        <button id="saveProfileBtn" class="btn btn-primary" type="button">Сохранить профиль</button>
+        <button id="clearProfileBtn" class="btn" type="button">Очистить</button>
+      </div>
+    </section>
 
-      <section class="card" id="session-block" hidden>
-        <div class="card-header">
-          <h3 class="section-title">Сессия создана</h3>
-          <span class="status-pill success">Готово</span>
+    <section class="card panel" id="projectsSection">
+      <h2 class="section-title">Панель фильтров</h2>
+      <div class="grid-filters">
+        <div>
+          <label for="searchInput">Поиск по названию</label>
+          <input id="searchInput" type="search" placeholder="Введите название проекта" />
         </div>
-        <div class="qr-box">
-          <div id="qr-target" role="img" aria-label="QR-код для подключения"></div>
-          <div>
-            <p class="session-code" id="session-code">—</p>
-            <p>
-              <a id="session-link" href="#">Ссылка на подключение</a>
-            </p>
-            <div class="inline">
-              <button class="button" id="copy-link">Скопировать ссылку</button>
-              <a class="button secondary" id="go-host" href="host.html">Перейти в кабинет ведущего</a>
-            </div>
-            <p class="hint">Совет: отправьте ссылку капитанам и включите «Экран для зала».</p>
-          </div>
+        <div>
+          <label for="directionFilter">Направление</label>
+          <select id="directionFilter"></select>
         </div>
-      </section>
+        <div>
+          <label for="levelFilter">Уровень</label>
+          <select id="levelFilter">
+            <option>Все</option>
+            <option>Новичок</option>
+            <option>Технопарковец</option>
+          </select>
+        </div>
+        <div>
+          <label for="statusFilter">Статус</label>
+          <select id="statusFilter">
+            <option>Все</option>
+            <option>Набор открыт</option>
+            <option>Осталось мало мест</option>
+            <option>Идет работа</option>
+            <option>Требуются сильные участники</option>
+          </select>
+        </div>
+        <div>
+          <label for="sortFilter">Сортировка</label>
+          <select id="sortFilter">
+            <option>По названию</option>
+            <option>По часам</option>
+            <option>По уровню</option>
+            <option>Сначала рекомендуемые</option>
+          </select>
+        </div>
+      </div>
+      <div class="filters-actions" style="margin-top:12px">
+        <button id="resetFiltersBtn" class="btn" type="button">Сбросить фильтры</button>
+      </div>
+    </section>
 
-      <section class="card" id="how-it-works">
-        <h3 class="section-title">Как это работает</h3>
-        <ul class="steps">
-          <li>
-            <span class="step-number">1</span>
-            <div>
-              <strong>Сессия и команды.</strong>
-              <p class="hint">Создайте игру и задайте состав команд.</p>
-            </div>
-          </li>
-          <li>
-            <span class="step-number">2</span>
-            <div>
-              <strong>Вопросы от капитанов.</strong>
-              <p class="hint">Капитаны загружают вопросы и ответы.</p>
-            </div>
-          </li>
-          <li>
-            <span class="step-number">3</span>
-            <div>
-              <strong>Раунд и счет.</strong>
-              <p class="hint">Ведущий запускает волчок и фиксирует ответ.</p>
-            </div>
-          </li>
-        </ul>
-        <div class="callout">
-          Вся игра работает в браузере. Для DEMO не требуется Firebase и регистрация.
-        </div>
-      </section>
-    </div>
+    <section class="card panel">
+      <div class="content-header">
+        <h2 class="section-title" style="margin:0">Проекты</h2>
+        <span id="projectsCount" class="muted"></span>
+      </div>
+
+      <table id="tableView" aria-label="Таблица проектов">
+        <thead>
+          <tr>
+            <th>Проект</th><th>Направление</th><th>Уровень</th><th>Часы</th><th>Статус</th><th>Рекомендуется</th><th>Действие</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div id="cardsView" class="cards-grid"></div>
+      <div id="projectsEmpty" class="empty-state hidden">Проекты не найдены. Попробуйте изменить фильтры.</div>
+    </section>
+
+    <section class="card panel" id="myChoicesSection">
+      <h2 class="section-title">Мои выборы</h2>
+      <div id="choicesList" class="choices-list"></div>
+      <div id="choicesEmpty" class="empty-state hidden">Пока ничего не выбрано. Откройте проекты и отметьте подходящие варианты.</div>
+      <div style="margin-top:12px">
+        <button id="downloadJsonBtn" class="btn" type="button">Скачать выборы в JSON</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>Технопарк РГСУ</div>
+      <div>Лаборатория промышленного дизайна и инжиниринга</div>
+      <div>MVP для распределения практикантов</div>
+    </footer>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <footer class="footer">Step3D · минималистичный режим для GitHub Pages</footer>
+  <div id="projectModalOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+      <div class="modal-header">
+        <h3 id="projectModalTitle" style="margin:0"></h3>
+        <button id="closeProjectModal" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div id="projectModalBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="modalInterestedBtn" class="btn" type="button">Интересно</button>
+        <button id="modalStrongBtn" class="btn" type="button">Очень подходит</button>
+        <button id="modalApplyBtn" class="btn btn-primary" type="button">Подать заявку</button>
+        <button id="modalCloseBtn" class="btn" type="button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="applyModalOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="applyModalTitle">
+      <div class="modal-header">
+        <h3 id="applyModalTitle" style="margin:0">Подать заявку</h3>
+        <button id="closeApplyModal" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <form id="applyForm" class="modal-body">
+        <div style="display:grid; gap:10px;">
+          <div>
+            <label for="applyProject">Проект</label>
+            <input id="applyProject" readonly />
+          </div>
+          <div>
+            <label for="applyPerson">Фамилия или ID</label>
+            <input id="applyPerson" required />
+          </div>
+          <div>
+            <label for="applyHours">Часы в неделю</label>
+            <select id="applyHours" required>
+              <option>2-4 часа</option><option>5-8 часов</option><option>9-12 часов</option><option>12+ часов</option>
+            </select>
+          </div>
+          <div>
+            <label for="applyComment">Комментарий</label>
+            <textarea id="applyComment" placeholder="Коротко расскажите, почему хотите в этот проект"></textarea>
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button id="submitApplyBtn" class="btn btn-primary" type="button">Отправить заявку</button>
+        <button id="applyCloseBtn" class="btn" type="button">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    // 1. Демонстрационные данные
+    const projects = [
+      { id:1, title:'Создание скульптур с помощью 3D-сканирования и 3D-печати', shortDescription:'Сканирование объектов и подготовка художественных реплик для экспозиции.', fullDescription:'Проект ориентирован на создание музейных и учебных скульптурных копий. Участник работает в связке со сканером, программами обработки и 3D-принтерами для получения качественных макетов.', direction:'3D-сканирование', level:'Технопарковец', tasks:['Подготавливать объекты к сканированию','Проводить первичную очистку облака точек','Готовить модели к печати и контролировать результат','Участвовать в финальной сборке экспозиции'], skills:['Базовое владение 3D-редакторами','Понимание форматов mesh','Аккуратность в постобработке','Навыки работы с оборудованием'], hours:'9-12 часов', status:'Набор открыт', tags:['сканирование','печать','экспозиция'] },
+      { id:2, title:'Подготовка моделей для 3D-печати', shortDescription:'Отработка базового пайплайна от файла до готового отпечатка.', fullDescription:'Проект подходит для старта в лаборатории. Участник помогает готовить модели, проверять толщины стенок, расстановку поддержек и параметры печати под разные материалы.', direction:'3D-печать', level:'Новичок', tasks:['Проверять геометрию моделей перед печатью','Подбирать профиль печати для задач','Контролировать качество первых слоев','Вести журнал печати'], skills:['Внимательность к деталям','Базовая 3D-грамотность','Умение работать по инструкции'], hours:'2-4 часа', status:'Набор открыт', tags:['слайсинг','печать','подготовка'] },
+      { id:3, title:'Обработка 3D-сканов и восстановление геометрии', shortDescription:'Восстановление сложной геометрии после сканирования.', fullDescription:'Участники проекта работают с неполными и шумными сканами, формируют пригодные инженерные модели и готовят данные для последующего проектирования.', direction:'Реверсивный инжиниринг', level:'Технопарковец', tasks:['Очищать и сшивать сканы','Выравнивать поверхности и восстанавливать отверстия','Экспортировать CAD-совместимые модели','Проводить контроль размеров'], skills:['Уверенное владение mesh-инструментами','Базовое понимание CAD','Пространственное мышление','Точность'], hours:'9-12 часов', status:'Требуются сильные участники', tags:['mesh','геометрия','reverse'] },
+      { id:4, title:'Разработка учебных инженерных макетов', shortDescription:'Проектирование наглядных макетов для занятий и мастер-классов.', fullDescription:'Проект посвящен созданию практичных учебных наборов и демонстрационных макетов, которые используются студентами на лабораторных занятиях.', direction:'Промышленный дизайн', level:'Новичок', tasks:['Собирать референсы и требования преподавателей','Готовить простые 3D-модели макетов','Согласовывать эргономику и размеры','Тестировать макеты на учебных сессиях'], skills:['Базовое чувство формы','Командная работа','Аккуратная подача материалов'], hours:'5-8 часов', status:'Набор открыт', tags:['макеты','обучение','прототип'] },
+      { id:5, title:'Проектирование сувенирной продукции', shortDescription:'Серия фирменных сувениров для мероприятий технопарка.', fullDescription:'Участники создают небольшие, но функциональные объекты: брелоки, наградные элементы, декоративные аксессуары с идентикой РГСУ.', direction:'3D-моделирование', level:'Новичок', tasks:['Создавать концепции сувениров','Подготавливать модели под печать','Проверять удобство использования','Оформлять финальные рендеры'], skills:['Базовое 3D-моделирование','Насмотренность в дизайне','Работа с бренд-элементами'], hours:'5-8 часов', status:'Осталось мало мест', tags:['сувениры','моделирование','бренд'] },
+      { id:6, title:'Разработка интерфейсов для проектов технопарка', shortDescription:'Создание UI для внутренних цифровых инструментов лаборатории.', fullDescription:'Проект по дизайну и верстке интерфейсов MVP-сервисов. Участники помогают делать понятные формы, таблицы и экраны управления для кураторов и студентов.', direction:'Веб-интерфейсы', level:'Технопарковец', tasks:['Проектировать структуру экранов','Верстать интерфейсные блоки','Проводить быстрые UX-проверки','Улучшать доступность интерфейсов'], skills:['HTML/CSS/JS','Понимание UX-паттернов','Аккуратная визуальная иерархия'], hours:'9-12 часов', status:'Идет работа', tags:['ui','ux','html'] },
+      { id:7, title:'Подготовка карточек проектов и визуальных материалов', shortDescription:'Оформление карточек проектов для презентаций и витрин.', fullDescription:'Проект нацелен на быстрое создание понятных визуальных материалов: карточек, мини-афиш, слайдов и постов для внутренних и внешних коммуникаций.', direction:'Контент и визуальные материалы', level:'Новичок', tasks:['Оформлять карточки проектов по шаблону','Подготавливать иллюстрации и подписи','Согласовывать контент с кураторами'], skills:['Базовые навыки графики','Структурирование информации','Аккуратность'], hours:'2-4 часа', status:'Набор открыт', tags:['графика','карточки','презентация'] },
+      { id:8, title:'Помощь в выставках и мастер-классах', shortDescription:'Организация пространства и сопровождение активностей.', fullDescription:'Участники помогают команде в подготовке площадки, навигации и поддержке посетителей на показах, мастер-классах и внутренних презентациях.', direction:'Организационная помощь', level:'Новичок', tasks:['Готовить площадку перед мероприятием','Сопровождать оборудование и материалы','Встречать участников и помогать с навигацией'], skills:['Коммуникация','Ответственность','Организованность'], hours:'2-4 часа', status:'Набор открыт', tags:['мероприятия','помощь','практика'] },
+      { id:9, title:'Подготовка описаний и инструкций', shortDescription:'Документация по оборудованию и процессам лаборатории.', fullDescription:'Проект по созданию понятных текстов: инструкции для станков, краткие регламенты, вводные материалы для новых практикантов.', direction:'Документация', level:'Новичок', tasks:['Собирать информацию по процессам','Писать короткие инструкции','Актуализировать документы после изменений'], skills:['Грамотный русский язык','Структурирование текста','Внимательность'], hours:'2-4 часа', status:'Набор открыт', tags:['тексты','инструкции','документы'] },
+      { id:10, title:'Разработка полезных изделий и аксессуаров', shortDescription:'Проектирование функциональных объектов для ежедневного использования.', fullDescription:'Проект ориентирован на создание практичных продуктов: держатели, крепления, адаптеры, корпусные детали для оборудования лаборатории.', direction:'Промышленный дизайн', level:'Технопарковец', tasks:['Формулировать требования к изделиям','Разрабатывать рабочие модели','Тестировать прототипы на практике','Вносить улучшения по обратной связи'], skills:['Инженерное мышление','3D-моделирование','Прототипирование'], hours:'5-8 часов', status:'Набор открыт', tags:['изделия','продукт','проектирование'] },
+      { id:11, title:'Подготовка цифровых моделей для реверсивного инжиниринга', shortDescription:'Создание точных цифровых заготовок для анализа деталей.', fullDescription:'Проект связан с измерением и анализом существующих деталей. Участник помогает формировать корректные цифровые модели и отчеты для инженерной команды.', direction:'Реверсивный инжиниринг', level:'Технопарковец', tasks:['Сравнивать сканы с исходными деталями','Готовить модели для CAD-анализа','Фиксировать отклонения и размеры','Поддерживать версионность файлов'], skills:['CAD-база','Понимание допусков','Техническая аккуратность'], hours:'9-12 часов', status:'Требуются сильные участники', tags:['cad','reverse','анализ'] },
+      { id:12, title:'Сборка, упаковка и подготовка изделий', shortDescription:'Поддержка финальной стадии: сборка и логистика результатов.', fullDescription:'Проект для тех, кто хочет быстро влиться в процессы лаборатории: сборка напечатанных деталей, упаковка комплектов и подготовка к передаче заказчику/преподавателю.', direction:'Организационная помощь', level:'Новичок', tasks:['Собирать изделия по чек-листу','Контролировать комплектность','Готовить упаковку и маркировку'], skills:['Аккуратность','Исполнительность','Работа по регламенту'], hours:'2-4 часа', status:'Идет работа', tags:['сборка','упаковка','логистика'] },
+      { id:13, title:'Создание контента о проектах технопарка', shortDescription:'Фото, тексты и короткие материалы о работе лаборатории.', fullDescription:'Проект по продвижению и прозрачности деятельности технопарка: фиксирование этапов работы, оформление кейсов и публикация материалов о результатах.', direction:'Контент и визуальные материалы', level:'Новичок', tasks:['Собирать фактуру по проектам','Готовить фото/описания этапов','Публиковать материалы по контент-плану'], skills:['Базовая фотография/редактура','Копирайтинг','Коммуникация с командами'], hours:'5-8 часов', status:'Набор открыт', tags:['контент','фото','описание'] },
+      { id:14, title:'Поддержка сайтов и цифровых витрин проектов', shortDescription:'Обновление разделов, карточек и структуры цифровых витрин.', fullDescription:'Участники поддерживают веб-витрины проектов: обновляют контент, правят интерфейс, следят за целостностью разделов и удобством навигации.', direction:'Веб-интерфейсы', level:'Технопарковец', tasks:['Обновлять контент на витринах','Исправлять верстку и микроошибки','Улучшать удобство пользовательского пути'], skills:['HTML/CSS','Базовый JS','Ответственность за качество'], hours:'5-8 часов', status:'Осталось мало мест', tags:['сайт','витрина','интерфейс'] }
+    ];
+
+    // 2. Глобальное состояние
+    const state = {
+      viewMode: 'table',
+      profile: { userId:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' },
+      filters: { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию' },
+      interests: {},
+      applications: [],
+      currentProjectId: null
+    };
+
+    // 3. Константы localStorage
+    const LS_KEYS = {
+      profile: 'rgsu_profile',
+      viewMode: 'rgsu_view_mode',
+      filters: 'rgsu_filters',
+      interests: 'rgsu_interests',
+      applications: 'rgsu_applications'
+    };
+
+    // 4. Утилиты
+    const $ = (id) => document.getElementById(id);
+    const escapeHtml = (s='') => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const hoursRank = { '2-4 часа':1, '5-8 часов':2, '9-12 часов':3, '12+ часов':4 };
+    const interestLabel = { skipped:'Пропущено', interested:'Интересно', strong:'Очень подходит' };
+
+    // 5. Работа с localStorage
+    function saveState() {
+      localStorage.setItem(LS_KEYS.profile, JSON.stringify(state.profile));
+      localStorage.setItem(LS_KEYS.viewMode, state.viewMode);
+      localStorage.setItem(LS_KEYS.filters, JSON.stringify(state.filters));
+      localStorage.setItem(LS_KEYS.interests, JSON.stringify(state.interests));
+      localStorage.setItem(LS_KEYS.applications, JSON.stringify(state.applications));
+    }
+
+    function loadState() {
+      try {
+        state.profile = { ...state.profile, ...(JSON.parse(localStorage.getItem(LS_KEYS.profile)) || {}) };
+        state.viewMode = localStorage.getItem(LS_KEYS.viewMode) || state.viewMode;
+        state.filters = { ...state.filters, ...(JSON.parse(localStorage.getItem(LS_KEYS.filters)) || {}) };
+        state.interests = JSON.parse(localStorage.getItem(LS_KEYS.interests)) || {};
+        state.applications = JSON.parse(localStorage.getItem(LS_KEYS.applications)) || [];
+      } catch { /* fallback on defaults */ }
+    }
+
+    // 6. Логика рекомендаций
+    function getRecommendationScore(project) {
+      let score = 0;
+      if (state.profile.direction !== 'Любое направление' && state.profile.direction === project.direction) score += 3;
+      if (state.profile.level === project.level) score += 2;
+      if (hoursRank[state.profile.hours] >= hoursRank[project.hours]) score += 2;
+
+      const newbiePriorities = ['Документация','Организационная помощь','Контент и визуальные материалы'];
+      const newbieTitles = ['Подготовка моделей для 3D-печати'];
+      const expertPriorities = ['Реверсивный инжиниринг','3D-сканирование','Веб-интерфейсы','Промышленный дизайн'];
+
+      if (state.profile.level === 'Новичок') {
+        if (newbiePriorities.includes(project.direction)) score += 2;
+        if (newbieTitles.includes(project.title)) score += 1;
+      } else {
+        if (expertPriorities.includes(project.direction)) score += 2;
+        if (project.status === 'Требуются сильные участники') score += 1;
+      }
+      return score;
+    }
+
+    function isRecommended(project) {
+      return getRecommendationScore(project) >= 6;
+    }
+
+    // 7. Фильтрация и сортировка
+    function getVisibleProjects() {
+      let list = projects.filter(p => {
+        const bySearch = p.title.toLowerCase().includes(state.filters.search.toLowerCase());
+        const byDirection = state.filters.direction === 'Все' || p.direction === state.filters.direction;
+        const byLevel = state.filters.level === 'Все' || p.level === state.filters.level;
+        const byStatus = state.filters.status === 'Все' || p.status === state.filters.status;
+        return bySearch && byDirection && byLevel && byStatus;
+      });
+
+      list.sort((a,b) => {
+        switch (state.filters.sort) {
+          case 'По часам': return hoursRank[a.hours] - hoursRank[b.hours] || a.title.localeCompare(b.title,'ru');
+          case 'По уровню': return a.level.localeCompare(b.level,'ru') || a.title.localeCompare(b.title,'ru');
+          case 'Сначала рекомендуемые': return Number(isRecommended(b)) - Number(isRecommended(a)) || a.title.localeCompare(b.title,'ru');
+          default: return a.title.localeCompare(b.title,'ru');
+        }
+      });
+      return list;
+    }
+
+    // 8. Рендер таблицы
+    function renderTable(items) {
+      const body = $('tableBody');
+      body.innerHTML = items.map(p => `
+        <tr>
+          <td data-label="Проект">
+            <div class="project-title">${escapeHtml(p.title)}</div>
+            <div class="project-desc">${escapeHtml(p.shortDescription)}</div>
+            <div class="tags">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+          </td>
+          <td data-label="Направление">${escapeHtml(p.direction)}</td>
+          <td data-label="Уровень">${escapeHtml(p.level)}</td>
+          <td data-label="Часы">${escapeHtml(p.hours)}</td>
+          <td data-label="Статус"><span class="badge status-${escapeHtml(p.status)}">${escapeHtml(p.status)}</span></td>
+          <td data-label="Рекомендуется">${isRecommended(p) ? '<span class="badge recommend">Рекомендуется</span>' : '—'}</td>
+          <td data-label="Действие">
+            <div class="table-actions">
+              <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
+              <button class="btn btn-sm btn-primary" type="button" onclick="openApplyModal(${p.id})">Подать заявку</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // 9. Рендер карточек
+    function renderCards(items) {
+      $('cardsView').innerHTML = items.map(p => `
+        <article class="card project-card">
+          <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
+            <h3 style="margin:0; font-size:1rem;">${escapeHtml(p.title)}</h3>
+            ${isRecommended(p) ? '<span class="badge recommend">Рекомендуется</span>' : ''}
+          </div>
+          <p class="muted" style="margin:8px 0 10px">${escapeHtml(p.shortDescription)}</p>
+          <ul class="tasks">${p.tasks.slice(0,3).map(t=>`<li>${escapeHtml(t)}</li>`).join('')}</ul>
+          <div class="chips" style="margin-bottom:10px">
+            <span class="chip">${escapeHtml(p.level)}</span>
+            <span class="chip">${escapeHtml(p.hours)}</span>
+            <span class="badge status-${escapeHtml(p.status)}">${escapeHtml(p.status)}</span>
+          </div>
+          <div class="tags">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+          <div class="project-card-actions">
+            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'skipped')">Пропустить</button>
+            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'interested')">Интересно</button>
+            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'strong')">Очень подходит</button>
+            <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
+            <button class="btn btn-sm btn-primary" style="grid-column:1/-1" type="button" onclick="openApplyModal(${p.id})">Подать заявку</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // 10. Рендер блока "Мои выборы"
+    function renderChoices() {
+      const mapProject = Object.fromEntries(projects.map(p => [p.id, p]));
+      const chosen = Object.entries(state.interests)
+        .filter(([,v]) => v === 'interested' || v === 'strong')
+        .map(([id,v]) => ({ project: mapProject[Number(id)], interest: v, hasApplication: state.applications.some(a => a.projectId === Number(id)) }))
+        .filter(item => item.project);
+
+      for (const app of state.applications) {
+        if (!chosen.find(c => c.project.id === app.projectId) && mapProject[app.projectId]) {
+          chosen.push({ project: mapProject[app.projectId], interest: 'interested', hasApplication: true });
+        }
+      }
+
+      $('choicesEmpty').classList.toggle('hidden', chosen.length > 0);
+      $('choicesList').innerHTML = chosen.map(item => `
+        <article class="choice-item">
+          <div>
+            <div class="project-title">${escapeHtml(item.project.title)}</div>
+            <div class="muted">${escapeHtml(interestLabel[item.interest] || 'Интересно')} ${item.hasApplication ? '• Заявка отправлена' : ''}</div>
+            <div class="chips" style="margin-top:6px">
+              <span class="chip">${escapeHtml(item.project.hours)}</span>
+              <span class="chip">${escapeHtml(item.project.direction)}</span>
+            </div>
+          </div>
+          <div class="choice-actions">
+            <button class="btn btn-sm" type="button" onclick="removeChoice(${item.project.id})">Удалить</button>
+            <button class="btn btn-sm" type="button" onclick="openProjectModal(${item.project.id})">Подробнее</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // 11. Модалки
+    function openOverlay(el) { el.classList.add('open'); el.setAttribute('aria-hidden','false'); }
+    function closeOverlay(el) { el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
+
+    function openProjectModal(projectId) {
+      const p = projects.find(x => x.id === projectId);
+      if (!p) return;
+      state.currentProjectId = projectId;
+      $('projectModalTitle').textContent = p.title;
+      $('projectModalBody').innerHTML = `
+        <p class="muted">${escapeHtml(p.fullDescription)}</p>
+        <h4>Задачи участника</h4>
+        <ul>${p.tasks.map(t=>`<li>${escapeHtml(t)}</li>`).join('')}</ul>
+        <h4>Навыки, которые пригодятся</h4>
+        <ul>${p.skills.map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul>
+        <div class="chips" style="margin-top:10px">
+          <span class="chip">Рекомендуемый уровень: ${escapeHtml(p.level)}</span>
+          <span class="chip">Примерная загрузка: ${escapeHtml(p.hours)}</span>
+          <span class="badge status-${escapeHtml(p.status)}">${escapeHtml(p.status)}</span>
+        </div>
+        <div class="tags" style="margin-top:10px">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+      `;
+      openOverlay($('projectModalOverlay'));
+    }
+
+    function openApplyModal(projectId) {
+      const p = projects.find(x => x.id === projectId);
+      if (!p) return;
+      state.currentProjectId = projectId;
+      $('applyProject').value = p.title;
+      $('applyPerson').value = state.profile.userId || '';
+      $('applyHours').value = state.profile.hours || '2-4 часа';
+      $('applyComment').value = '';
+      openOverlay($('applyModalOverlay'));
+    }
+
+    function closeAllModals() {
+      closeOverlay($('projectModalOverlay'));
+      closeOverlay($('applyModalOverlay'));
+    }
+
+    // 12. Toast
+    function showToast(message) {
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = message;
+      $('toasts').appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; }, 1900);
+      setTimeout(() => el.remove(), 2300);
+    }
+
+    // 13. Обработчики событий
+    function setInterest(projectId, type) {
+      state.interests[projectId] = type;
+      saveState();
+      renderAll();
+      showToast('Выбор сохранен');
+    }
+
+    function removeChoice(projectId) {
+      delete state.interests[projectId];
+      state.applications = state.applications.filter(a => a.projectId !== projectId);
+      saveState();
+      renderAll();
+      showToast('Выбор удален');
+    }
+
+    function bindEvents() {
+      $('viewTableBtn').addEventListener('click', () => { state.viewMode='table'; saveState(); renderAll(); });
+      $('viewCardsBtn').addEventListener('click', () => { state.viewMode='cards'; saveState(); renderAll(); });
+      $('goChoicesBtn').addEventListener('click', () => $('myChoicesSection').scrollIntoView({behavior:'smooth'}));
+
+      $('saveProfileBtn').addEventListener('click', () => {
+        state.profile = {
+          userId: $('profileId').value.trim(),
+          level: $('profileLevel').value,
+          direction: $('profileDirection').value,
+          hours: $('profileHours').value
+        };
+        saveState(); renderAll(); showToast('Профиль сохранен');
+      });
+
+      $('clearProfileBtn').addEventListener('click', () => {
+        state.profile = { userId:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' };
+        saveState(); syncProfileForm(); renderAll(); showToast('Данные очищены');
+      });
+
+      $('searchInput').addEventListener('input', e => { state.filters.search = e.target.value; saveState(); renderAll(); });
+      ['directionFilter','levelFilter','statusFilter','sortFilter'].forEach(id => {
+        $(id).addEventListener('change', e => {
+          const key = { directionFilter:'direction', levelFilter:'level', statusFilter:'status', sortFilter:'sort' }[id];
+          state.filters[key] = e.target.value;
+          saveState(); renderAll();
+        });
+      });
+
+      $('resetFiltersBtn').addEventListener('click', () => {
+        state.filters = { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию' };
+        saveState(); syncFilters(); renderAll(); showToast('Фильтры сброшены');
+      });
+
+      $('closeProjectModal').addEventListener('click', () => closeOverlay($('projectModalOverlay')));
+      $('modalCloseBtn').addEventListener('click', () => closeOverlay($('projectModalOverlay')));
+      $('closeApplyModal').addEventListener('click', () => closeOverlay($('applyModalOverlay')));
+      $('applyCloseBtn').addEventListener('click', () => closeOverlay($('applyModalOverlay')));
+
+      $('projectModalOverlay').addEventListener('click', e => { if (e.target === $('projectModalOverlay')) closeOverlay($('projectModalOverlay')); });
+      $('applyModalOverlay').addEventListener('click', e => { if (e.target === $('applyModalOverlay')) closeOverlay($('applyModalOverlay')); });
+
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+
+      $('modalInterestedBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'interested'); });
+      $('modalStrongBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'strong'); });
+      $('modalApplyBtn').addEventListener('click', () => { if (state.currentProjectId) { closeOverlay($('projectModalOverlay')); openApplyModal(state.currentProjectId); } });
+
+      $('submitApplyBtn').addEventListener('click', () => {
+        if (!state.currentProjectId) return;
+        const person = $('applyPerson').value.trim();
+        const hours = $('applyHours').value;
+        if (!person) { $('applyPerson').focus(); return; }
+        const item = {
+          projectId: state.currentProjectId,
+          person,
+          hours,
+          comment: $('applyComment').value.trim(),
+          createdAt: new Date().toISOString()
+        };
+        state.applications = state.applications.filter(a => a.projectId !== item.projectId);
+        state.applications.push(item);
+        state.interests[item.projectId] = state.interests[item.projectId] || 'interested';
+        saveState();
+        closeOverlay($('applyModalOverlay'));
+        renderAll();
+        showToast('Заявка сохранена');
+      });
+
+      $('downloadJsonBtn').addEventListener('click', () => {
+        const data = {
+          profile: state.profile,
+          selectedProjects: state.interests,
+          applications: state.applications
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rgsu-techpark-choices.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function syncProfileForm() {
+      $('profileId').value = state.profile.userId;
+      $('profileLevel').value = state.profile.level;
+      $('profileDirection').value = state.profile.direction;
+      $('profileHours').value = state.profile.hours;
+    }
+
+    function syncFilters() {
+      $('searchInput').value = state.filters.search;
+      $('directionFilter').value = state.filters.direction;
+      $('levelFilter').value = state.filters.level;
+      $('statusFilter').value = state.filters.status;
+      $('sortFilter').value = state.filters.sort;
+    }
+
+    function renderAll() {
+      $('viewTableBtn').classList.toggle('active', state.viewMode === 'table');
+      $('viewCardsBtn').classList.toggle('active', state.viewMode === 'cards');
+      $('tableView').classList.toggle('hidden', state.viewMode !== 'table');
+      $('cardsView').style.display = state.viewMode === 'cards' ? 'grid' : 'none';
+
+      const list = getVisibleProjects();
+      $('projectsCount').textContent = `Найдено проектов: ${list.length}`;
+      $('projectsEmpty').classList.toggle('hidden', list.length !== 0);
+
+      renderTable(list);
+      renderCards(list);
+      renderChoices();
+    }
+
+    // 14. Инициализация
+    function init() {
+      loadState();
+
+      const directions = ['Все', ...new Set(projects.map(p => p.direction))];
+      $('directionFilter').innerHTML = directions.map(d => `<option>${escapeHtml(d)}</option>`).join('');
+
+      syncProfileForm();
+      syncFilters();
+      bindEvents();
+      renderAll();
+    }
+
+    window.openProjectModal = openProjectModal;
+    window.openApplyModal = openApplyModal;
+    window.setInterest = setInterest;
+    window.removeChoice = removeChoice;
+
+    init();
+  </script>
 </body>
 </html>
