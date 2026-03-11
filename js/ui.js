@@ -50,6 +50,26 @@ const SOUND_LABELS = {
   end: "Конец",
 };
 
+const UI_KEYS = {
+  joinSessionInput: "step3d:joinSessionInput",
+  captainDraft: "step3d:captainDraft",
+  soundVolume: "step3d:soundVolume",
+  soundMuted: "step3d:soundMuted",
+};
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+const debounce = (fn, wait = 250) => {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+};
+
+const normalizeTeamName = (value) => String(value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+const normalizeQuestionText = (value, maxLen = 500) => String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLen);
+
 const createSampleQuestions = (teams) =>
   teams.flatMap((team) =>
     SAMPLE_QUESTION_TEMPLATES.map((template) => ({
@@ -97,6 +117,8 @@ const renderModeBadge = () => {
 };
 
 const renderTeamsOptions = (select, teams) => {
+  if (!select) return;
+  const previous = select.value;
   select.innerHTML = "";
   if (!teams.length) {
     const option = document.createElement("option");
@@ -112,12 +134,15 @@ const renderTeamsOptions = (select, teams) => {
     option.textContent = team.name;
     select.append(option);
   });
+  if (teams.some((team) => team.id === previous)) {
+    select.value = previous;
+  }
 };
 
 const renderScoreboard = (container, teams) => {
   container.innerHTML = "";
   [...teams]
-    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .sort((a, b) => (b.score || 0) - (a.score || 0) || String(a.name).localeCompare(String(b.name), "ru"))
     .forEach((team) => {
     const row = document.createElement("div");
     row.className = "score-row";
@@ -160,6 +185,7 @@ const renderQuestionList = (container, questions) => {
     item.innerHTML = `
       <strong>${escapeHtml(question.text.slice(0, 80))}</strong>
       <span>Ответ: ${escapeHtml(question.answer || "—")}</span>
+      <span>${escapeHtml((question.comment || "").slice(0, 90) || "Без комментария")}</span>
       <span class="status-pill ${question.used ? "warning" : "success"}">
         ${question.used ? "Сыгран" : "В пуле"}
       </span>
@@ -173,7 +199,7 @@ const renderQuestionList = (container, questions) => {
 };
 
 const renderQuestionForPlayers = (container, question) => {
-  container.textContent = question ? question.text : "Ожидаем вопрос.";
+  container.textContent = question ? String(question.text || "").trim() : "Ожидаем вопрос.";
 };
 
 const updateTimer = (element, timer, progress) => {
@@ -191,6 +217,7 @@ const updateTimer = (element, timer, progress) => {
   const remaining = Math.max(0, timer.durationSec - elapsed);
   const percent = timer.durationSec ? Math.max(0, Math.min(100, (remaining / timer.durationSec) * 100)) : 0;
   element.textContent = formatTime(remaining);
+  element.setAttribute("aria-label", `Осталось ${formatTime(remaining)}`);
   const isEnding = remaining <= 10;
   element.classList.toggle("is-ending", isEnding);
   if (progress) {
@@ -330,18 +357,26 @@ const initJoin = async () => {
   let currentSession = null;
   let selectedRole = "player";
 
+  const setJoinEnabled = () => {
+    if (!joinButton) return;
+    joinButton.disabled = !currentSession || !currentSession.teams?.length;
+  };
+
   const loadSession = async (sessionId) => {
     const normalizedId = normalizeSessionId(sessionId);
     if (!normalizedId) return;
+    saveLocal(UI_KEYS.joinSessionInput, normalizedId);
     const session = await store.getSession(normalizedId);
     currentSession = session;
     if (!session) {
       statusText.textContent = "Сессия не найдена.";
       teamSelect.innerHTML = "";
+      setJoinEnabled();
       return;
     }
     statusText.textContent = `Сессия активна. Команд: ${session.teams.length}`;
     renderTeamsOptions(teamSelect, session.teams);
+    setJoinEnabled();
   };
 
   roleButtons.forEach((button) => {
@@ -359,6 +394,7 @@ const initJoin = async () => {
     sessionInput.value = "";
     statusText.textContent = "Ожидаем ввод кода.";
     teamSelect.innerHTML = "";
+    setJoinEnabled();
   });
 
   joinButton?.addEventListener("click", async () => {
@@ -385,6 +421,14 @@ const initJoin = async () => {
       joinedAt: Date.now(),
     };
 
+    const alreadyJoined = currentSession.players.some(
+      (item) => item.name === player.name && item.teamId === player.teamId && item.role === player.role,
+    );
+    if (alreadyJoined) {
+      showToast("Игрок с такими данными уже подключен", "error");
+      return;
+    }
+
     await store.updateSession(currentSession.id, (session) => ({
       ...session,
       players: [...session.players, player],
@@ -397,15 +441,21 @@ const initJoin = async () => {
   });
 
   const presetSession = getSessionIdFromUrl();
+  const cachedSession = normalizeSessionId(loadLocal(UI_KEYS.joinSessionInput, ""));
   if (presetSession) sessionInput.value = presetSession;
+  else if (cachedSession) sessionInput.value = cachedSession;
+
+  const debouncedLoad = debounce((value) => loadSession(value), 220);
 
   sessionInput?.addEventListener("input", () => {
     const normalized = normalizeSessionId(sessionInput.value);
     if (sessionInput.value !== normalized) {
       sessionInput.value = normalized;
     }
+    debouncedLoad(sessionInput.value);
   });
   sessionInput?.addEventListener("change", () => loadSession(sessionInput.value));
+  setJoinEnabled();
   if (sessionInput?.value) await loadSession(sessionInput.value);
 };
 
@@ -517,6 +567,7 @@ const initHost = async () => {
   };
 
   const renderFields = (count) => {
+    const previousValues = qsa("[data-team-name]", teamFields).map((input) => input.value);
     teamFields.innerHTML = "";
     const clampedCount = Math.min(12, Math.max(1, count));
     if (teamCountInput) teamCountInput.value = String(clampedCount);
@@ -525,7 +576,7 @@ const initHost = async () => {
       field.className = "field";
       field.innerHTML = `
         <label>Команда ${i + 1}</label>
-        <input type="text" data-team-name placeholder="Введите название" />
+        <input type="text" data-team-name maxlength="40" placeholder="Введите название" value="${escapeHtml(previousValues[i] || "")}" />
       `;
       teamFields.append(field);
     }
@@ -546,16 +597,22 @@ const initHost = async () => {
       return;
     }
     const names = qsa("[data-team-name]", teamFields)
-      .map((input) => input.value.trim())
+      .map((input) => normalizeTeamName(input.value))
       .filter(Boolean);
     if (!names.length) {
       showToast("Введите хотя бы одно название", "error");
       return;
     }
+    const uniqueNames = [...new Set(names.map((name) => name.toLowerCase()))];
+    if (uniqueNames.length !== names.length) {
+      showToast("Названия команд должны быть уникальными", "error");
+      return;
+    }
+
     const teams = names.map((name) => ({
       id: createId(4),
       name,
-      captainCode: String(Math.floor(1000 + Math.random() * 9000)),
+      captainCode: String(Math.floor(1000 + Math.random() * 9000)).padStart(4, "0"),
       score: 0,
       ready: false,
     }));
@@ -625,11 +682,18 @@ const initCaptain = async () => {
 
   questionForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const text = qs("#question-text").value.trim();
-    const answer = qs("#question-answer").value.trim();
-    const comment = qs("#question-comment").value.trim();
+    const text = normalizeQuestionText(qs("#question-text").value, 500);
+    const answer = normalizeQuestionText(qs("#question-answer").value, 200);
+    const comment = normalizeQuestionText(qs("#question-comment").value, 300);
     if (!text || !answer) {
       showToast("Заполните вопрос и ответ", "error");
+      return;
+    }
+    const duplicateText = currentSession.questions.some(
+      (item) => item.teamId === user.teamId && item.id !== editingId && item.text.toLowerCase() === text.toLowerCase(),
+    );
+    if (duplicateText) {
+      showToast("Такой вопрос уже есть в вашей команде", "error");
       return;
     }
     const payload = { id: editingId || createId(8), teamId: user.teamId, text, answer, comment, used: false };
@@ -641,8 +705,26 @@ const initCaptain = async () => {
     });
     editingId = null;
     questionForm.reset();
+    saveLocal(UI_KEYS.captainDraft, null);
     updateQuestionsView(currentSession);
   });
+
+  ["#question-text", "#question-answer", "#question-comment"].forEach((selector) => {
+    qs(selector)?.addEventListener("input", () => {
+      saveLocal(UI_KEYS.captainDraft, {
+        text: qs("#question-text")?.value || "",
+        answer: qs("#question-answer")?.value || "",
+        comment: qs("#question-comment")?.value || "",
+      });
+    });
+  });
+
+  const draft = loadLocal(UI_KEYS.captainDraft, null);
+  if (draft) {
+    if (qs("#question-text")) qs("#question-text").value = draft.text || "";
+    if (qs("#question-answer")) qs("#question-answer").value = draft.answer || "";
+    if (qs("#question-comment")) qs("#question-comment").value = draft.comment || "";
+  }
 
   questionList?.addEventListener("click", async (event) => {
     const action = event.target.dataset.action;
@@ -673,7 +755,8 @@ const initCaptain = async () => {
   });
 
   answerButton?.addEventListener("click", async () => {
-    if (!answerInput.value.trim()) {
+    const answerText = normalizeQuestionText(answerInput.value, 250);
+    if (!answerText) {
       showToast("Введите ответ", "error");
       return;
     }
@@ -684,8 +767,9 @@ const initCaptain = async () => {
         answers: {
           ...session.game.answers,
           [user.teamId]: {
-            text: answerInput.value.trim(),
+            text: answerText,
             submittedAt: Date.now(),
+            judged: false,
           },
         },
       },
@@ -789,7 +873,15 @@ const initGame = async () => {
   const host = getStoredHost();
   const wheel = initWheel(qs("#wheel"));
   const soundboard = createSoundboard();
-  let isMuted = false;
+  const savedVolume = clamp(Number(loadLocal(UI_KEYS.soundVolume, 0.6)), 0, 1);
+  let isMuted = Boolean(loadLocal(UI_KEYS.soundMuted, false));
+  soundboard.setVolume(savedVolume);
+  soundboard.mute(isMuted);
+  if (volumeControl) volumeControl.value = String(savedVolume);
+  if (muteButton) {
+    muteButton.textContent = isMuted ? "Со звуком" : "Без звука";
+    muteButton.setAttribute("aria-pressed", String(isMuted));
+  }
 
   // Sound playback feedback + autoplay fallback toast.
   const playSound = async (name) => {
@@ -826,12 +918,15 @@ const initGame = async () => {
   });
 
   volumeControl?.addEventListener("input", () => {
-    soundboard.setVolume(Number(volumeControl.value));
+    const volume = clamp(Number(volumeControl.value), 0, 1);
+    soundboard.setVolume(volume);
+    saveLocal(UI_KEYS.soundVolume, volume);
   });
 
   muteButton?.addEventListener("click", () => {
     isMuted = !isMuted;
     soundboard.mute(isMuted);
+    saveLocal(UI_KEYS.soundMuted, isMuted);
     muteButton.textContent = isMuted ? "Со звуком" : "Без звука";
     muteButton.setAttribute("aria-pressed", String(isMuted));
   });
@@ -856,8 +951,8 @@ const initGame = async () => {
           <strong>${escapeHtml(team?.name || "Команда")}</strong>
           <p>${escapeHtml(answer.text)}</p>
           <div class="inline">
-            <button class="button secondary" data-score="yes" data-team="${teamId}">Засчитать</button>
-            <button class="button ghost" data-score="no" data-team="${teamId}">Не засчитать</button>
+            <button class="button secondary" data-score="yes" data-team="${teamId}" ${answer.judged ? "disabled" : ""}>Засчитать</button>
+            <button class="button ghost" data-score="no" data-team="${teamId}" ${answer.judged ? "disabled" : ""}>Не засчитать</button>
           </div>
         `;
         answerList.append(row);
@@ -910,6 +1005,10 @@ const initGame = async () => {
     if (!requireHost()) return;
     if (!currentSession.game.currentQuestionId) {
       showToast("Сначала раскрутите волчок", "error");
+      return;
+    }
+    if (currentSession.game.roundState === "answering") {
+      showToast("Таймер уже идет", "info");
       return;
     }
     const duration = Number(durationSelect.value || 60);
@@ -997,16 +1096,26 @@ const initGame = async () => {
     if (!button) return;
     if (!requireHost()) return;
     const teamId = button.dataset.team;
-    if (button.dataset.score === "yes") {
-      currentSession = await store.updateSession(sessionId, (session) => ({
-        ...session,
-        teams: session.teams.map((team) =>
-          team.id === teamId ? { ...team, score: (team.score || 0) + 1 } : team
-        ),
-      }));
-      showToast("Очко добавлено", "success");
-      updateView(currentSession);
-    }
+    const isYes = button.dataset.score === "yes";
+    currentSession = await store.updateSession(sessionId, (session) => ({
+      ...session,
+      teams: session.teams.map((team) =>
+        team.id === teamId && isYes ? { ...team, score: (team.score || 0) + 1 } : team
+      ),
+      game: {
+        ...session.game,
+        answers: {
+          ...session.game.answers,
+          [teamId]: {
+            ...session.game.answers[teamId],
+            judged: true,
+            accepted: isYes,
+          },
+        },
+      },
+    }));
+    showToast(isYes ? "Очко добавлено" : "Ответ отклонен", isYes ? "success" : "info");
+    updateView(currentSession);
   });
 
   exportButton?.addEventListener("click", () => {
