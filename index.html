@@ -127,6 +127,12 @@
       background: var(--surface);
     }
 
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .btn:hover { transform: translateY(-1px); }
 
     .btn-primary {
@@ -169,6 +175,14 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .hero-steps {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text-muted);
+      display: grid;
+      gap: 4px;
     }
 
     .metrics {
@@ -233,6 +247,15 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
+    }
+
+    .selection-summary {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #dbe6ff;
+      background: #f5f8ff;
+      color: #2849a3;
+      font-size: .9rem;
     }
 
     .muted { color: var(--text-muted); }
@@ -372,6 +395,26 @@
       background: #fff;
     }
 
+    .status-line {
+      min-height: 1.3em;
+      margin-top: 8px;
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+
+    .status-line.error { color: #b42318; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
     .footer {
       margin: 30px 0 24px;
       color: #616977;
@@ -472,6 +515,8 @@
       .metrics { grid-template-columns: 1fr; }
       .grid-4, .grid-filters, .cards-grid { grid-template-columns: 1fr; }
       .hero { padding: 22px; }
+      .view-switch { width: 100%; }
+      .switch-btn { flex: 1; }
 
       #tableView thead { display: none; }
       #tableView, #tableView tbody, #tableView tr, #tableView td {
@@ -516,10 +561,15 @@
   </header>
 
   <main class="container">
-    <section class="hero" id="top">
-      <h1>Практика в проектах Технопарка РГСУ</h1>
+    <section class="hero" id="top" aria-labelledby="heroTitle">
+      <h1 id="heroTitle">Практика в проектах Технопарка РГСУ</h1>
       <p>Выберите проект, отметьте интересные направления и отправьте заявку на участие в работе лаборатории.</p>
-      <div class="hero-actions">
+      <ol class="hero-steps" aria-label="Как пройти распределение">
+        <li>Заполните профиль, чтобы получить точные рекомендации.</li>
+        <li>Используйте фильтры и добавьте интересные проекты в «Мои выборы».</li>
+        <li>Подайте заявку по приоритетным проектам и скачайте JSON для отправки куратору.</li>
+      </ol>
+      <div class="hero-actions" style="margin-top:18px">
         <a href="#projectsSection" class="btn btn-primary">Смотреть проекты</a>
         <a href="#myChoicesSection" class="btn">Мои выборы</a>
       </div>
@@ -577,6 +627,7 @@
 
     <section class="card panel" id="projectsSection">
       <h2 class="section-title">Панель фильтров</h2>
+      <p class="muted" style="margin:0 0 12px">Список обновляется мгновенно. Рекомендации учитывают профиль участника.</p>
       <div class="grid-filters">
         <div>
           <label for="searchInput">Поиск по названию</label>
@@ -622,13 +673,16 @@
     <section class="card panel">
       <div class="content-header">
         <h2 class="section-title" style="margin:0">Проекты</h2>
-        <span id="projectsCount" class="muted"></span>
+        <div style="display:grid; gap:8px; justify-items:end;">
+          <span id="projectsCount" class="muted"></span>
+          <div id="selectionSummary" class="selection-summary" role="status" aria-live="polite"></div>
+        </div>
       </div>
 
       <table id="tableView" aria-label="Таблица проектов">
         <thead>
           <tr>
-            <th>Проект</th><th>Направление</th><th>Уровень</th><th>Часы</th><th>Статус</th><th>Рекомендуется</th><th>Действие</th>
+            <th>Проект</th><th>Направление</th><th>Уровень</th><th>Часы</th><th>Статус</th><th>Рекомендация</th><th>Мой статус</th><th>Действие</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -642,8 +696,9 @@
       <h2 class="section-title">Мои выборы</h2>
       <div id="choicesList" class="choices-list"></div>
       <div id="choicesEmpty" class="empty-state hidden">Пока ничего не выбрано. Откройте проекты и отметьте подходящие варианты.</div>
-      <div style="margin-top:12px">
+      <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
         <button id="downloadJsonBtn" class="btn" type="button">Скачать выборы в JSON</button>
+        <button id="clearChoicesBtn" class="btn" type="button">Очистить выборы</button>
       </div>
     </section>
 
@@ -660,8 +715,9 @@
         <h3 id="projectModalTitle" style="margin:0"></h3>
         <button id="closeProjectModal" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
       </div>
-      <div id="projectModalBody" class="modal-body"></div>
+      <div id="projectModalBody" class="modal-body" tabindex="-1"></div>
       <div class="modal-footer">
+        <button id="modalSkipBtn" class="btn" type="button">Не подходит</button>
         <button id="modalInterestedBtn" class="btn" type="button">Интересно</button>
         <button id="modalStrongBtn" class="btn" type="button">Очень подходит</button>
         <button id="modalApplyBtn" class="btn btn-primary" type="button">Подать заявку</button>
@@ -676,15 +732,15 @@
         <h3 id="applyModalTitle" style="margin:0">Подать заявку</h3>
         <button id="closeApplyModal" class="icon-btn" type="button" aria-label="Закрыть">✕</button>
       </div>
-      <form id="applyForm" class="modal-body">
+      <form id="applyForm" class="modal-body" novalidate>
         <div style="display:grid; gap:10px;">
           <div>
             <label for="applyProject">Проект</label>
-            <input id="applyProject" readonly />
+            <input id="applyProject" readonly aria-readonly="true" />
           </div>
           <div>
             <label for="applyPerson">Фамилия или ID</label>
-            <input id="applyPerson" required />
+            <input id="applyPerson" required minlength="2" />
           </div>
           <div>
             <label for="applyHours">Часы в неделю</label>
@@ -694,9 +750,10 @@
           </div>
           <div>
             <label for="applyComment">Комментарий</label>
-            <textarea id="applyComment" placeholder="Коротко расскажите, почему хотите в этот проект"></textarea>
+            <textarea id="applyComment" maxlength="500" placeholder="Коротко расскажите, почему хотите в этот проект"></textarea>
           </div>
         </div>
+        <p id="applyFormStatus" class="status-line" role="alert" aria-live="assertive"></p>
       </form>
       <div class="modal-footer">
         <button id="submitApplyBtn" class="btn btn-primary" type="button">Отправить заявку</button>
@@ -749,7 +806,10 @@
     const $ = (id) => document.getElementById(id);
     const escapeHtml = (s='') => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
     const hoursRank = { '2-4 часа':1, '5-8 часов':2, '9-12 часов':3, '12+ часов':4 };
-    const interestLabel = { skipped:'Пропущено', interested:'Интересно', strong:'Очень подходит' };
+    const interestLabel = { skipped:'Не подходит', interested:'Интересно', strong:'Очень подходит' };
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    let activeOverlay = null;
+    let previousFocus = null;
 
     // 5. Работа с localStorage
     function saveState() {
@@ -763,11 +823,17 @@
     function loadState() {
       try {
         state.profile = { ...state.profile, ...(JSON.parse(localStorage.getItem(LS_KEYS.profile)) || {}) };
-        state.viewMode = localStorage.getItem(LS_KEYS.viewMode) || state.viewMode;
+        state.viewMode = ['table','cards'].includes(localStorage.getItem(LS_KEYS.viewMode)) ? localStorage.getItem(LS_KEYS.viewMode) : state.viewMode;
         state.filters = { ...state.filters, ...(JSON.parse(localStorage.getItem(LS_KEYS.filters)) || {}) };
         state.interests = JSON.parse(localStorage.getItem(LS_KEYS.interests)) || {};
         state.applications = JSON.parse(localStorage.getItem(LS_KEYS.applications)) || [];
       } catch { /* fallback on defaults */ }
+
+      const projectIds = new Set(projects.map(p => p.id));
+      state.interests = Object.fromEntries(Object.entries(state.interests).filter(([id, value]) => {
+        return projectIds.has(Number(id)) && ['skipped','interested','strong'].includes(value);
+      }));
+      state.applications = state.applications.filter(app => projectIds.has(Number(app.projectId)) && typeof app.person === 'string' && app.person.trim());
     }
 
     // 6. Логика рекомендаций
@@ -816,10 +882,30 @@
       return list;
     }
 
+
+    function getSelectionStats() {
+      const selectedIds = Object.entries(state.interests).filter(([,v]) => v === 'interested' || v === 'strong').map(([id]) => Number(id));
+      const appliedIds = new Set(state.applications.map(a => Number(a.projectId)));
+      return {
+        selected: selectedIds.length,
+        strong: Object.values(state.interests).filter(v => v === 'strong').length,
+        applied: selectedIds.filter(id => appliedIds.has(id)).length
+      };
+    }
+
+    function getInterestMeta(projectId) {
+      const val = state.interests[projectId];
+      if (!val) return '<span class="muted">Не выбрано</span>';
+      const cls = val === 'strong' ? 'recommend' : 'chip';
+      return `<span class="badge ${cls}">${escapeHtml(interestLabel[val] || 'Не выбрано')}</span>`;
+    }
+
     // 8. Рендер таблицы
     function renderTable(items) {
       const body = $('tableBody');
-      body.innerHTML = items.map(p => `
+      body.innerHTML = items.map(p => {
+        const hasApplication = state.applications.some(a => a.projectId === p.id);
+        return `
         <tr>
           <td data-label="Проект">
             <div class="project-title">${escapeHtml(p.title)}</div>
@@ -830,7 +916,8 @@
           <td data-label="Уровень">${escapeHtml(p.level)}</td>
           <td data-label="Часы">${escapeHtml(p.hours)}</td>
           <td data-label="Статус"><span class="badge status-${escapeHtml(p.status)}">${escapeHtml(p.status)}</span></td>
-          <td data-label="Рекомендуется">${isRecommended(p) ? '<span class="badge recommend">Рекомендуется</span>' : '—'}</td>
+          <td data-label="Рекомендация">${isRecommended(p) ? '<span class="badge recommend">Рекомендуется</span>' : '<span class="muted">—</span>'}</td>
+          <td data-label="Мой статус">${getInterestMeta(p.id)} ${hasApplication ? '<span class="badge recommend" style="margin-left:6px">Заявка</span>' : ''}</td>
           <td data-label="Действие">
             <div class="table-actions">
               <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
@@ -838,7 +925,8 @@
             </div>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     // 9. Рендер карточек
@@ -858,11 +946,12 @@
           </div>
           <div class="tags">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
           <div class="project-card-actions">
-            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'skipped')">Пропустить</button>
+            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'skipped')">Не подходит</button>
             <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'interested')">Интересно</button>
             <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'strong')">Очень подходит</button>
             <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
             <button class="btn btn-sm btn-primary" style="grid-column:1/-1" type="button" onclick="openApplyModal(${p.id})">Подать заявку</button>
+            <span class="muted" style="grid-column:1/-1; font-size:.82rem">${state.applications.some(a => a.projectId === p.id) ? 'Заявка уже сохранена' : (interestLabel[state.interests[p.id]] ? `Статус: ${interestLabel[state.interests[p.id]]}` : 'Статус: не выбрано')}</span>
           </div>
         </article>
       `).join('');
@@ -902,8 +991,33 @@
     }
 
     // 11. Модалки
-    function openOverlay(el) { el.classList.add('open'); el.setAttribute('aria-hidden','false'); }
-    function closeOverlay(el) { el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
+    function trapFocus(e) {
+      if (!activeOverlay || e.key !== 'Tab') return;
+      const focusables = Array.from(activeOverlay.querySelectorAll(focusableSelector)).filter(el => !el.disabled);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    function openOverlay(el) {
+      previousFocus = document.activeElement;
+      activeOverlay = el;
+      el.classList.add('open');
+      el.setAttribute('aria-hidden','false');
+      const firstFocusable = el.querySelector(focusableSelector);
+      (firstFocusable || el).focus();
+      document.addEventListener('keydown', trapFocus);
+    }
+
+    function closeOverlay(el) {
+      el.classList.remove('open');
+      el.setAttribute('aria-hidden','true');
+      if (activeOverlay === el) activeOverlay = null;
+      document.removeEventListener('keydown', trapFocus);
+      if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+    }
 
     function openProjectModal(projectId) {
       const p = projects.find(x => x.id === projectId);
@@ -924,6 +1038,7 @@
         <div class="tags" style="margin-top:10px">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
       `;
       openOverlay($('projectModalOverlay'));
+      $('projectModalBody').focus();
     }
 
     function openApplyModal(projectId) {
@@ -934,6 +1049,8 @@
       $('applyPerson').value = state.profile.userId || '';
       $('applyHours').value = state.profile.hours || '2-4 часа';
       $('applyComment').value = '';
+      $('applyFormStatus').textContent = '';
+      $('applyFormStatus').classList.remove('error');
       openOverlay($('applyModalOverlay'));
     }
 
@@ -1012,6 +1129,7 @@
 
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
+      $('modalSkipBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'skipped'); });
       $('modalInterestedBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'interested'); });
       $('modalStrongBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'strong'); });
       $('modalApplyBtn').addEventListener('click', () => { if (state.currentProjectId) { closeOverlay($('projectModalOverlay')); openApplyModal(state.currentProjectId); } });
@@ -1020,12 +1138,28 @@
         if (!state.currentProjectId) return;
         const person = $('applyPerson').value.trim();
         const hours = $('applyHours').value;
-        if (!person) { $('applyPerson').focus(); return; }
+        const comment = $('applyComment').value.trim();
+        const status = $('applyFormStatus');
+        status.textContent = '';
+        status.classList.remove('error');
+
+        if (person.length < 2) {
+          status.textContent = 'Укажите фамилию или ID (минимум 2 символа).';
+          status.classList.add('error');
+          $('applyPerson').focus();
+          return;
+        }
+        if (comment.length > 500) {
+          status.textContent = 'Комментарий слишком длинный (максимум 500 символов).';
+          status.classList.add('error');
+          $('applyComment').focus();
+          return;
+        }
         const item = {
           projectId: state.currentProjectId,
           person,
           hours,
-          comment: $('applyComment').value.trim(),
+          comment,
           createdAt: new Date().toISOString()
         };
         state.applications = state.applications.filter(a => a.projectId !== item.projectId);
@@ -1035,6 +1169,14 @@
         closeOverlay($('applyModalOverlay'));
         renderAll();
         showToast('Заявка сохранена');
+      });
+
+      $('clearChoicesBtn').addEventListener('click', () => {
+        state.interests = {};
+        state.applications = [];
+        saveState();
+        renderAll();
+        showToast('Выборы очищены');
       });
 
       $('downloadJsonBtn').addEventListener('click', () => {
@@ -1071,12 +1213,17 @@
     function renderAll() {
       $('viewTableBtn').classList.toggle('active', state.viewMode === 'table');
       $('viewCardsBtn').classList.toggle('active', state.viewMode === 'cards');
+      $('viewTableBtn').setAttribute('aria-pressed', String(state.viewMode === 'table'));
+      $('viewCardsBtn').setAttribute('aria-pressed', String(state.viewMode === 'cards'));
       $('tableView').classList.toggle('hidden', state.viewMode !== 'table');
       $('cardsView').style.display = state.viewMode === 'cards' ? 'grid' : 'none';
 
       const list = getVisibleProjects();
+      const stats = getSelectionStats();
       $('projectsCount').textContent = `Найдено проектов: ${list.length}`;
+      $('selectionSummary').textContent = `Выбрано: ${stats.selected} • Приоритетных: ${stats.strong} • С заявкой: ${stats.applied}`;
       $('projectsEmpty').classList.toggle('hidden', list.length !== 0);
+      $('downloadJsonBtn').disabled = stats.selected === 0 && state.applications.length === 0;
 
       renderTable(list);
       renderCards(list);
