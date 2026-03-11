@@ -422,6 +422,28 @@
       font-size: .92rem;
     }
 
+    .onboarding { display: grid; gap: 12px; }
+    .step-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .step-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .step-item.done { border-color: #cfe2ff; background: #f5f9ff; }
+    .verification-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .verification-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fff; }
+    .verification-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; border: 1px solid var(--border); }
+    .verification-badge.ok { color: #146d39; background: #ebf8f0; border-color: #b9e7cb; }
+    .locked-note { padding: 10px; border-radius: 10px; border: 1px dashed #cad4e7; background: #f8faff; color: #4f5c72; font-size: .88rem; margin-top: 10px; }
+    .priority-btn.active { background: #ffeaa8; border-color: #e8cb6a; color: #5a4700; font-weight: 700; }
+    .choice-wish { margin-top: 8px; width: 100%; min-height: 74px; border: 1px solid var(--border); border-radius: 10px; padding: 10px; resize: vertical; }
+    .workorder-box { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fbfcff; display: grid; gap: 10px; }
+
     .overlay {
       position: fixed;
       inset: 0;
@@ -542,6 +564,12 @@
         color: var(--text-muted);
         margin-bottom: 3px;
       }
+
+      .verification-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 761px) {
+      .verification-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -581,6 +609,45 @@
       </div>
     </section>
 
+    <section class="card panel onboarding" id="onboardingSection">
+      <h2 class="section-title">Путь до получения наряда на работу</h2>
+      <ol class="step-list" aria-label="Шаги до получения наряда">
+        <li id="stepVerify" class="step-item"><span>1) Пройти обязательное тестирование или ввести идентификационный код</span><span class="verification-badge" id="stepVerifyBadge">Не выполнено</span></li>
+        <li id="stepSelect" class="step-item"><span>2) Выбрать желаемые проекты</span><span class="verification-badge" id="stepSelectBadge">Не выполнено</span></li>
+        <li id="stepPriority" class="step-item"><span>3) Поставить ⭐ приоритет на один проект и заполнить пожелания по остальным</span><span class="verification-badge" id="stepPriorityBadge">Не выполнено</span></li>
+        <li id="stepOrder" class="step-item"><span>4) Получить наряд на работу на email</span><span class="verification-badge" id="stepOrderBadge">Ожидает</span></li>
+      </ol>
+    </section>
+
+    <section class="card panel" id="verificationSection">
+      <h2 class="section-title">Обязательное тестирование перед выдачей наряда</h2>
+      <p class="muted" style="margin:0 0 12px">Без прохождения тестирования (или ввода кода после него) отправка наряда недоступна.</p>
+      <div style="margin-bottom:10px">
+        <span id="verificationStatusBadge" class="verification-badge">Статус: не подтверждено</span>
+      </div>
+      <div class="verification-grid">
+        <article class="verification-card">
+          <h3 style="margin:0 0 8px">Вариант A — пройти тестирование</h3>
+          <p class="muted" style="margin:0 0 10px">Откройте модуль теста, пройдите его и вернитесь сюда.</p>
+          <div class="hero-actions">
+            <a href="trainee-test.html" class="btn btn-primary">Открыть тестирование</a>
+            <button id="autoImportCodeBtn" class="btn" type="button">Подтянуть код автоматически</button>
+          </div>
+          <label style="margin-top:10px; display:flex; gap:8px; align-items:flex-start;">
+            <input id="confirmTestingDone" type="checkbox" style="width:auto; margin-top:2px" />
+            <span>Подтверждаю, что тестирование пройдено полностью.</span>
+          </label>
+        </article>
+        <article class="verification-card">
+          <h3 style="margin:0 0 8px">Вариант B — ввести идентификационный код</h3>
+          <label for="verificationCodeInput">Код участника</label>
+          <input id="verificationCodeInput" type="text" placeholder="STEP3D-YYMMDD-XXXXXX" />
+          <p class="muted" style="margin:8px 0 0">Формат: STEP3D-260311-A7K4Q9</p>
+        </article>
+      </div>
+      <p id="verificationHint" class="status-line" aria-live="polite"></p>
+    </section>
+
     <section class="card panel" id="profileSection">
       <h2 class="section-title">Профиль участника</h2>
       <div class="grid-4">
@@ -609,6 +676,10 @@
             <option>Документация</option>
             <option>Организационная помощь</option>
           </select>
+        </div>
+        <div>
+          <label for="profileEmail">Email для получения наряда</label>
+          <input id="profileEmail" type="email" placeholder="name@example.com" />
         </div>
         <div>
           <label for="profileHours">Сколько часов в неделю готов уделять</label>
@@ -697,9 +768,16 @@
       <h2 class="section-title">Мои выборы</h2>
       <div id="choicesList" class="choices-list"></div>
       <div id="choicesEmpty" class="empty-state hidden">Пока ничего не выбрано. Откройте проекты и отметьте подходящие варианты.</div>
+      <div id="choicesLocked" class="locked-note hidden">Сначала подтвердите прохождение тестирования или введите идентификационный код — тогда можно выбирать проекты и получать наряд.</div>
       <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
         <button id="downloadJsonBtn" class="btn" type="button">Скачать выборы в JSON</button>
         <button id="clearChoicesBtn" class="btn" type="button">Очистить выборы</button>
+      </div>
+      <div class="workorder-box">
+        <strong>Получение наряда на работу</strong>
+        <p class="muted" style="margin:0">Наряд будет сформирован после обязательной верификации, выбора проектов, выбора 1 приоритета ⭐ и заполнения пожеланий по остальным проектам.</p>
+        <button id="issueWorkOrderBtn" class="btn btn-primary" type="button">Получить наряд на работу</button>
+        <p id="workOrderStatus" class="status-line" aria-live="polite"></p>
       </div>
     </section>
 
@@ -787,10 +865,13 @@
     // 2. Глобальное состояние
     const state = {
       viewMode: 'table',
-      profile: { userId:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' },
+      profile: { userId:'', email:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' },
       filters: { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию' },
       interests: {},
       applications: [],
+      projectPrefs: {},
+      verification: { confirmedTesting: false, publicCode: '' },
+      workOrder: { issuedAt: '', sentTo: '' },
       currentProjectId: null
     };
 
@@ -800,7 +881,10 @@
       viewMode: 'rgsu_view_mode',
       filters: 'rgsu_filters',
       interests: 'rgsu_interests',
-      applications: 'rgsu_applications'
+      applications: 'rgsu_applications',
+      projectPrefs: 'rgsu_project_prefs',
+      verification: 'rgsu_verification',
+      workOrder: 'rgsu_work_order'
     };
 
     // 4. Утилиты
@@ -819,6 +903,9 @@
       localStorage.setItem(LS_KEYS.filters, JSON.stringify(state.filters));
       localStorage.setItem(LS_KEYS.interests, JSON.stringify(state.interests));
       localStorage.setItem(LS_KEYS.applications, JSON.stringify(state.applications));
+      localStorage.setItem(LS_KEYS.projectPrefs, JSON.stringify(state.projectPrefs));
+      localStorage.setItem(LS_KEYS.verification, JSON.stringify(state.verification));
+      localStorage.setItem(LS_KEYS.workOrder, JSON.stringify(state.workOrder));
     }
 
     function loadState() {
@@ -828,6 +915,9 @@
         state.filters = { ...state.filters, ...(JSON.parse(localStorage.getItem(LS_KEYS.filters)) || {}) };
         state.interests = JSON.parse(localStorage.getItem(LS_KEYS.interests)) || {};
         state.applications = JSON.parse(localStorage.getItem(LS_KEYS.applications)) || [];
+        state.projectPrefs = JSON.parse(localStorage.getItem(LS_KEYS.projectPrefs)) || {};
+        state.verification = { ...state.verification, ...(JSON.parse(localStorage.getItem(LS_KEYS.verification)) || {}) };
+        state.workOrder = { ...state.workOrder, ...(JSON.parse(localStorage.getItem(LS_KEYS.workOrder)) || {}) };
       } catch { /* fallback on defaults */ }
 
       const projectIds = new Set(projects.map(p => p.id));
@@ -835,6 +925,7 @@
         return projectIds.has(Number(id)) && ['skipped','interested','strong'].includes(value);
       }));
       state.applications = state.applications.filter(app => projectIds.has(Number(app.projectId)) && typeof app.person === 'string' && app.person.trim());
+      state.projectPrefs = Object.fromEntries(Object.entries(state.projectPrefs).filter(([id]) => projectIds.has(Number(id))));
     }
 
     // 6. Логика рекомендаций
@@ -889,9 +980,60 @@
       const appliedIds = new Set(state.applications.map(a => Number(a.projectId)));
       return {
         selected: selectedIds.length,
-        strong: Object.values(state.interests).filter(v => v === 'strong').length,
+        strong: Object.values(state.projectPrefs).filter(v => v && v.priority).length,
         applied: selectedIds.filter(id => appliedIds.has(id)).length
       };
+    }
+
+    function selectedProjectIds() {
+      return Object.entries(state.interests)
+        .filter(([,v]) => v === 'interested' || v === 'strong')
+        .map(([id]) => Number(id));
+    }
+
+    function isValidPublicCode(code) {
+      return /^STEP3D-\d{6}-[A-Z0-9]{6}$/.test((code || '').trim().toUpperCase());
+    }
+
+    function isVerificationPassed() {
+      return Boolean(state.verification.confirmedTesting) || isValidPublicCode(state.verification.publicCode);
+    }
+
+    function ensureProjectPref(projectId) {
+      if (!state.projectPrefs[projectId]) {
+        state.projectPrefs[projectId] = { priority: false, wish: '' };
+      }
+      return state.projectPrefs[projectId];
+    }
+
+    function setPriorityProject(projectId) {
+      selectedProjectIds().forEach(id => {
+        const pref = ensureProjectPref(id);
+        pref.priority = Number(id) === Number(projectId);
+      });
+      saveState();
+      renderAll();
+    }
+
+    function getPriorityProjectId() {
+      const hit = Object.entries(state.projectPrefs).find(([,pref]) => pref && pref.priority);
+      return hit ? Number(hit[0]) : null;
+    }
+
+    function validateWorkOrder() {
+      if (!isVerificationPassed()) return 'Сначала пройдите тестирование или введите корректный идентификационный код.';
+      if (!state.profile.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.profile.email)) return 'Укажите корректный email в профиле.';
+      const ids = selectedProjectIds();
+      if (!ids.length) return 'Выберите хотя бы один проект.';
+      const priorityId = getPriorityProjectId();
+      if (!priorityId || !ids.includes(priorityId)) return 'Установите ⭐ приоритет ровно на один выбранный проект.';
+      for (const id of ids) {
+        const pref = ensureProjectPref(id);
+        if (id !== priorityId && (pref.wish || '').trim().length < 3) {
+          return 'Заполните пожелания по всем неприоритетным проектам (минимум 3 символа).';
+        }
+      }
+      return '';
     }
 
     function getInterestMeta(projectId) {
@@ -904,6 +1046,7 @@
     // 8. Рендер таблицы
     function renderTable(items) {
       const body = $('tableBody');
+      const locked = !isVerificationPassed();
       body.innerHTML = items.map(p => {
         const hasApplication = state.applications.some(a => a.projectId === p.id);
         return `
@@ -922,7 +1065,7 @@
           <td data-label="Действие">
             <div class="table-actions">
               <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
-              <button class="btn btn-sm btn-primary" type="button" onclick="openApplyModal(${p.id})">Подать заявку</button>
+              <button class="btn btn-sm btn-primary" type="button" ${locked ? 'disabled' : ''} onclick="openApplyModal(${p.id})">Подать заявку</button>
             </div>
           </td>
         </tr>
@@ -932,6 +1075,7 @@
 
     // 9. Рендер карточек
     function renderCards(items) {
+      const locked = !isVerificationPassed();
       $('cardsView').innerHTML = items.map(p => `
         <article class="card project-card">
           <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
@@ -947,11 +1091,11 @@
           </div>
           <div class="tags">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
           <div class="project-card-actions">
-            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'skipped')">Не подходит</button>
-            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'interested')">Интересно</button>
-            <button class="btn btn-sm" type="button" onclick="setInterest(${p.id},'strong')">Очень подходит</button>
+            <button class="btn btn-sm" type="button" ${locked ? 'disabled' : ''} onclick="setInterest(${p.id},'skipped')">Не подходит</button>
+            <button class="btn btn-sm" type="button" ${locked ? 'disabled' : ''} onclick="setInterest(${p.id},'interested')">Интересно</button>
+            <button class="btn btn-sm" type="button" ${locked ? 'disabled' : ''} onclick="setInterest(${p.id},'strong')">Очень подходит</button>
             <button class="btn btn-sm" type="button" onclick="openProjectModal(${p.id})">Подробнее</button>
-            <button class="btn btn-sm btn-primary" style="grid-column:1/-1" type="button" onclick="openApplyModal(${p.id})">Подать заявку</button>
+            <button class="btn btn-sm btn-primary" style="grid-column:1/-1" type="button" ${locked ? 'disabled' : ''} onclick="openApplyModal(${p.id})">Подать заявку</button>
             <span class="muted" style="grid-column:1/-1; font-size:.82rem">${state.applications.some(a => a.projectId === p.id) ? 'Заявка уже сохранена' : (interestLabel[state.interests[p.id]] ? `Статус: ${interestLabel[state.interests[p.id]]}` : 'Статус: не выбрано')}</span>
           </div>
         </article>
@@ -972,6 +1116,9 @@
         }
       }
 
+      const locked = !isVerificationPassed();
+      $('choicesLocked').classList.toggle('hidden', !locked);
+
       $('choicesEmpty').classList.toggle('hidden', chosen.length > 0);
       $('choicesList').innerHTML = chosen.map(item => `
         <article class="choice-item">
@@ -982,13 +1129,27 @@
               <span class="chip">${escapeHtml(item.project.hours)}</span>
               <span class="chip">${escapeHtml(item.project.direction)}</span>
             </div>
+            <textarea class="choice-wish" ${locked ? 'disabled' : ''} placeholder="Пожелания по проекту (обязательно для неприоритетных)">${escapeHtml((ensureProjectPref(item.project.id).wish || ''))}</textarea>
           </div>
           <div class="choice-actions">
+            <button class="btn btn-sm priority-btn ${ensureProjectPref(item.project.id).priority ? 'active' : ''}" ${locked ? 'disabled' : ''} type="button" onclick="setPriorityProject(${item.project.id})">⭐ Приоритет</button>
             <button class="btn btn-sm" type="button" onclick="removeChoice(${item.project.id})">Удалить</button>
             <button class="btn btn-sm" type="button" onclick="openProjectModal(${item.project.id})">Подробнее</button>
           </div>
         </article>
       `).join('');
+
+      chosen.forEach(item => {
+        const card = $('choicesList').querySelector(`[onclick="setPriorityProject(${item.project.id})"]`)?.closest('.choice-item');
+        const wishEl = card ? card.querySelector('.choice-wish') : null;
+        if (wishEl) {
+          wishEl.addEventListener('input', e => {
+            const pref = ensureProjectPref(item.project.id);
+            pref.wish = e.target.value;
+            saveState();
+          });
+        }
+      });
     }
 
     // 11. Модалки
@@ -1043,6 +1204,11 @@
     }
 
     function openApplyModal(projectId) {
+      if (!isVerificationPassed()) {
+        showToast('Сначала завершите тестирование или введите идентификационный код.');
+        $('verificationSection').scrollIntoView({ behavior:'smooth', block:'start' });
+        return;
+      }
       const p = projects.find(x => x.id === projectId);
       if (!p) return;
       state.currentProjectId = projectId;
@@ -1072,7 +1238,16 @@
 
     // 13. Обработчики событий
     function setInterest(projectId, type) {
+      if (!isVerificationPassed()) {
+        showToast('Выбор проектов станет доступен после обязательной верификации.');
+        return;
+      }
       state.interests[projectId] = type;
+      ensureProjectPref(projectId);
+      if (type === 'skipped') {
+        delete state.projectPrefs[projectId];
+        state.applications = state.applications.filter(a => a.projectId !== Number(projectId));
+      }
       saveState();
       renderAll();
       showToast('Выбор сохранен');
@@ -1080,6 +1255,7 @@
 
     function removeChoice(projectId) {
       delete state.interests[projectId];
+      delete state.projectPrefs[projectId];
       state.applications = state.applications.filter(a => a.projectId !== projectId);
       saveState();
       renderAll();
@@ -1094,6 +1270,7 @@
       $('saveProfileBtn').addEventListener('click', () => {
         state.profile = {
           userId: $('profileId').value.trim(),
+          email: $('profileEmail').value.trim(),
           level: $('profileLevel').value,
           direction: $('profileDirection').value,
           hours: $('profileHours').value
@@ -1102,8 +1279,38 @@
       });
 
       $('clearProfileBtn').addEventListener('click', () => {
-        state.profile = { userId:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' };
+        state.profile = { userId:'', email:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' };
         saveState(); syncProfileForm(); renderAll(); showToast('Данные очищены');
+      });
+
+      $('confirmTestingDone').addEventListener('change', e => {
+        state.verification.confirmedTesting = e.target.checked;
+        saveState();
+        renderAll();
+      });
+
+      $('verificationCodeInput').addEventListener('input', e => {
+        state.verification.publicCode = e.target.value.trim().toUpperCase();
+        saveState();
+        renderAll();
+      });
+
+      $('autoImportCodeBtn').addEventListener('click', () => {
+        try {
+          const testState = JSON.parse(localStorage.getItem('step3d_test_state_v1') || '{}');
+          const code = testState?.submissionResult?.public_code;
+          if (code && isValidPublicCode(code)) {
+            state.verification.publicCode = code.toUpperCase();
+            state.verification.confirmedTesting = true;
+            saveState();
+            renderAll();
+            showToast('Код успешно подтянут из модуля тестирования');
+          } else {
+            showToast('Код не найден. Завершите тестирование и попробуйте снова.');
+          }
+        } catch {
+          showToast('Не удалось прочитать данные тестирования.');
+        }
       });
 
       $('searchInput').addEventListener('input', e => { state.filters.search = e.target.value; saveState(); renderAll(); });
@@ -1129,6 +1336,12 @@
       $('applyModalOverlay').addEventListener('click', e => { if (e.target === $('applyModalOverlay')) closeOverlay($('applyModalOverlay')); });
 
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === '/' && document.activeElement && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+          e.preventDefault();
+          $('searchInput').focus();
+        }
+      });
 
       $('modalSkipBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'skipped'); });
       $('modalInterestedBtn').addEventListener('click', () => { if (state.currentProjectId) setInterest(state.currentProjectId, 'interested'); });
@@ -1166,6 +1379,7 @@
         state.applications = state.applications.filter(a => a.projectId !== item.projectId);
         state.applications.push(item);
         state.interests[item.projectId] = state.interests[item.projectId] || 'interested';
+        ensureProjectPref(item.projectId);
         saveState();
         closeOverlay($('applyModalOverlay'));
         renderAll();
@@ -1175,6 +1389,8 @@
       $('clearChoicesBtn').addEventListener('click', () => {
         state.interests = {};
         state.applications = [];
+        state.projectPrefs = {};
+        state.workOrder = { issuedAt: '', sentTo: '' };
         saveState();
         renderAll();
         showToast('Выборы очищены');
@@ -1184,7 +1400,10 @@
         const data = {
           profile: state.profile,
           selectedProjects: state.interests,
-          applications: state.applications
+          applications: state.applications,
+          projectPrefs: state.projectPrefs,
+          verification: state.verification,
+          workOrder: state.workOrder
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -1194,13 +1413,72 @@
         a.click();
         URL.revokeObjectURL(url);
       });
+
+      $('issueWorkOrderBtn').addEventListener('click', () => {
+        const error = validateWorkOrder();
+        const status = $('workOrderStatus');
+        status.classList.remove('error');
+        if (error) {
+          status.textContent = error;
+          status.classList.add('error');
+          return;
+        }
+        const priorityId = getPriorityProjectId();
+        const chosen = selectedProjectIds();
+        const mapProject = Object.fromEntries(projects.map(p => [p.id, p]));
+        const body = [
+          `Участник: ${state.profile.userId || 'не указано'}`,
+          `Идентификационный код: ${state.verification.publicCode || 'подтверждено без кода'}`,
+          `Приоритетный проект: ${mapProject[priorityId]?.title || priorityId}`,
+          'Пожелания по остальным проектам:',
+          ...chosen.filter(id => id !== priorityId).map(id => `- ${mapProject[id]?.title || id}: ${(ensureProjectPref(id).wish || '').trim()}`)
+        ].join('\n');
+
+        state.workOrder.issuedAt = new Date().toISOString();
+        state.workOrder.sentTo = state.profile.email;
+        saveState();
+        renderAll();
+        status.textContent = `Наряд сформирован и отправлен на ${state.profile.email}. Если почтовый клиент не открылся автоматически — скопируйте данные из JSON.`;
+        window.location.href = `mailto:${encodeURIComponent(state.profile.email)}?subject=${encodeURIComponent('Наряд на работу STEP 3D')}&body=${encodeURIComponent(body)}`;
+      });
     }
 
     function syncProfileForm() {
       $('profileId').value = state.profile.userId;
+      $('profileEmail').value = state.profile.email || '';
       $('profileLevel').value = state.profile.level;
       $('profileDirection').value = state.profile.direction;
       $('profileHours').value = state.profile.hours;
+    }
+
+    function renderVerificationUI() {
+      const validCode = isValidPublicCode(state.verification.publicCode);
+      const verified = isVerificationPassed();
+      $('verificationStatusBadge').className = `verification-badge ${verified ? 'ok' : ''}`;
+      $('verificationStatusBadge').textContent = verified ? 'Статус: подтверждено' : 'Статус: не подтверждено';
+      $('confirmTestingDone').checked = Boolean(state.verification.confirmedTesting);
+      $('verificationCodeInput').value = state.verification.publicCode || '';
+      $('verificationHint').textContent = verified
+        ? `Доступ к выбору проектов открыт${validCode ? ` (код: ${state.verification.publicCode.toUpperCase()})` : ''}.`
+        : 'Подтвердите тестирование или введите корректный код в формате STEP3D-YYMMDD-XXXXXX.';
+    }
+
+    function renderOnboarding() {
+      const verified = isVerificationPassed();
+      const selected = selectedProjectIds().length > 0;
+      const priority = Boolean(getPriorityProjectId());
+      const orderIssued = Boolean(state.workOrder.issuedAt);
+      const applyStep = (id, ok, doneText='Выполнено') => {
+        const row = $(id);
+        const badge = $(`${id}Badge`);
+        row.classList.toggle('done', ok);
+        badge.className = `verification-badge ${ok ? 'ok' : ''}`;
+        badge.textContent = ok ? doneText : 'Не выполнено';
+      };
+      applyStep('stepVerify', verified);
+      applyStep('stepSelect', selected);
+      applyStep('stepPriority', priority);
+      applyStep('stepOrder', orderIssued, `Отправлен: ${new Date(state.workOrder.issuedAt).toLocaleString('ru-RU')}`);
     }
 
     function syncFilters() {
@@ -1225,10 +1503,13 @@
       $('selectionSummary').textContent = `Выбрано: ${stats.selected} • Приоритетных: ${stats.strong} • С заявкой: ${stats.applied}`;
       $('projectsEmpty').classList.toggle('hidden', list.length !== 0);
       $('downloadJsonBtn').disabled = stats.selected === 0 && state.applications.length === 0;
+      $('issueWorkOrderBtn').disabled = !isVerificationPassed();
 
       renderTable(list);
       renderCards(list);
       renderChoices();
+      renderVerificationUI();
+      renderOnboarding();
     }
 
     // 14. Инициализация
@@ -1248,6 +1529,7 @@
     window.openApplyModal = openApplyModal;
     window.setInterest = setInterest;
     window.removeChoice = removeChoice;
+    window.setPriorityProject = setPriorityProject;
 
     init();
   </script>
