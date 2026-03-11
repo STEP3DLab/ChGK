@@ -1,0 +1,96 @@
+{
+  "source": "step3d_frontend_mvp",
+  "google_sheet_id": "ВСТАВИТЬ_ID_ТАБЛИЦЫ",
+  "submitted_at": "ISO-8601",
+  "answers": {
+    "meta": {
+      "started_at": "ISO-8601",
+      "last_saved_at": "ISO-8601"
+    },
+    "block1": {
+      "q1": "string",
+      "q2": "string",
+      "q3": "string",
+      "q4": ["string"],
+      "q5": "string",
+      "q6": "string",
+      "q7": "string"
+    },
+    "block2": {
+      "q1": ["string"],
+      "q2": { "item1": "string", "item2": "string", "item3": "string", "item4": "string", "item5": "string", "item6": "string" },
+      "q3": { "STL": "string", "Слайсер": "string", "Поддержки": "string", "Точность": "string", "Реверсивный инжиниринг": "string", "3D-сканирование": "string" },
+      "q4": [1, 2, 3, 4, 5, 6],
+      "q5": ["string"],
+      "q6": { "case1": "Стрем|Норм", "case2": "Стрем|Норм", "case3": "Стрем|Норм", "case4": "Стрем|Норм", "case5": "Стрем|Норм" },
+      "q7": "STL|stl|не знаю",
+      "article": {
+        "opened_at": "ISO-8601",
+        "closed_at": "ISO-8601",
+        "read_seconds": 300,
+        "opens": 1
+      }
+    },
+    "block3": {
+      "projects": [
+        { "project_id": "project1", "choice": "like|dislike", "confident": false }
+      ],
+      "q6": "string"
+    },
+    "block4": {
+      "q1_5": {
+        "task1": { "hours": 2, "cost": 1500 },
+        "task2": { "hours": 1, "cost": 900 }
+      }
+    },
+    "block5": {
+      "q1": { "sent_files": true, "finish_clicked": true }
+    },
+    "block6": {
+      "q1_7": {
+        "Braun SK 4": 5,
+        "Braun T3": 4
+      }
+    },
+    "block7": {
+      "q1": {
+        "path": "chess|cup",
+        "chess_correct": true,
+        "chess_time_sec": 900,
+        "model_time_sec": 1800,
+        "started_at": "ISO-8601"
+      }
+    },
+    "block8": {
+      "q1": "string",
+      "tools": {
+        "ChatGPT": { "used": true, "rating": 5 }
+      }
+    },
+    "block9": {
+      "q1": "string",
+      "q1_other": "string",
+      "q2": "string",
+      "q2_budget": 180000
+    },
+    "block10": {
+      "q1": {
+        "fio": "string",
+        "email": "string",
+        "phone": "string",
+        "telegram": "string"
+      },
+      "q2": {
+        "subscribed": true,
+        "later": false
+      }
+    }
+  },
+  "event_log": [
+    {
+      "type": "article_open|article_read_finished|article_answered|project_reaction|project_confidence|design_rating|neural_usage|neural_rating|chess_path_selected|assignment21_confirmed|assignment21_finish_click",
+      "payload": {},
+      "ts": "ISO-8601"
+    }
+  ]
+}
