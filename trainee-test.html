@@ -80,11 +80,14 @@
     textarea { min-height: 120px; resize: vertical; }
     .grid-2 { display:grid; gap:10px; grid-template-columns:1fr; }
     .actions { display:flex; gap:10px; justify-content:space-between; margin-top:10px; }
+    .actions-left, .actions-right { display:flex; gap:10px; align-items:center; }
     .btn {
       border:1px solid var(--line); background:#fff; color:var(--text); border-radius:10px; padding:10px 14px; cursor:pointer;
     }
     .btn.primary { background: var(--accent); border-color: var(--accent); color:#fff; }
     .btn.primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+    .btn.ghost { background: #f7f9ff; border-color: #d4def5; }
+    .btn.danger { border-color:#f2caca; color:#9e1c1c; background:#fff7f7; }
     .btn:disabled { opacity:.6; cursor:not-allowed; }
     .btn:focus-visible, .opt:focus-within, input:focus-visible, textarea:focus-visible, select:focus-visible {
       outline: 3px solid rgba(37, 99, 255, 0.25);
@@ -108,6 +111,17 @@
       margin-bottom: 10px;
     }
     .status-chip.done { background:#ebf8f1; color:#0f8b4c; }
+    .status-chip.optional { background:#f4f5f9; color:#596273; }
+    .helper { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .banner {
+      border: 1px dashed #bfd0fb;
+      background: #f3f7ff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #2a427f;
+      margin-bottom: 10px;
+    }
     @media (min-width: 768px) {
       .app { padding: 24px; }
       .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -133,11 +147,17 @@
 
     <section class="card" id="navCard">
       <div class="actions">
-        <button class="btn" id="prevBtn">Назад</button>
-        <button class="btn primary" id="nextBtn">Далее</button>
+        <div class="actions-left">
+          <button class="btn" id="prevBtn">Назад</button>
+          <button class="btn ghost" id="skipBtn">Пропустить вопрос</button>
+        </div>
+        <div class="actions-right">
+          <button class="btn danger" id="resetBtn">Сбросить пользователя</button>
+          <button class="btn primary" id="nextBtn">Далее</button>
+        </div>
       </div>
       <p class="warn" id="warn" aria-live="polite"></p>
-      <p class="tiny">Автосохранение включено. Прогресс сохраняется локально.</p>
+      <p class="tiny" id="autosaveText">Автосохранение включено. Прогресс сохраняется локально.</p>
     </section>
   </main>
 
@@ -145,6 +165,7 @@
     const GOOGLE_SHEET_ID = "ВСТАВИТЬ_ID_ТАБЛИЦЫ";
     const APPS_SCRIPT_WEBAPP_URL = "ВСТАВИТЬ_URL_ВЕБ-ПРИЛОЖЕНИЯ";
     const STORAGE_KEY = "step3d_test_state_v1";
+    const OPTIONAL_TYPES = new Set(["visual", "match", "order", "labor", "assignment", "chess"]);
 
     const state = loadState() || {
       current: 0,
@@ -156,6 +177,8 @@
       },
       event_log: []
     };
+
+    if (!state.skipped) state.skipped = {};
 
     const projectCards = [
       { id: "project1", title: "Создание скульптур посредством 3D-сканирования и аддитивных технологий" },
@@ -232,11 +255,35 @@
     const warn = document.getElementById("warn");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const autosaveText = document.getElementById("autosaveText");
+
+    function questionId(q){ return `${q.block}.${q.key}`; }
+    function isOptional(q){ return OPTIONAL_TYPES.has(q.type); }
 
     prevBtn.addEventListener("click",()=>{ if (state.current>0){ state.current--; render(); saveState(); } });
+    skipBtn.addEventListener("click", ()=>{
+      const q = questions[state.current];
+      if (!isOptional(q)) {
+        warn.textContent = "Этот вопрос обязательный. Выберите ответ или нажмите «Далее».";
+        return;
+      }
+      state.skipped[questionId(q)] = true;
+      logEvent("question_skipped", { question: questionId(q), type: q.type });
+      if (state.current < questions.length - 1) state.current++;
+      render();
+      saveState();
+    });
+    resetBtn.addEventListener("click", ()=>{
+      if (!window.confirm("Сбросить пользователя? Все локальные ответы будут удалены.")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      window.location.reload();
+    });
     nextBtn.addEventListener("click", async ()=>{
       warn.textContent = "";
       const q = questions[state.current];
+      delete state.skipped[questionId(q)];
       const valid = validate(q);
       if (!valid.ok){ warn.textContent = valid.msg; return; }
       if (state.current === questions.length - 1){
@@ -294,10 +341,12 @@
 
     function updateCompletion(){
       const answered = questions.filter(isQuestionAnswered).length;
+      const skipped = Object.keys(state.skipped || {}).length;
       const total = questions.length;
       const ratio = Math.round((answered / total) * 100);
       document.getElementById("answeredCounter").textContent = `Заполнено: ${answered} / ${total}`;
       document.getElementById("completionText").textContent = `Готовность: ${ratio}%`;
+      autosaveText.textContent = `Автосохранение включено. Заполнено: ${answered}, пропущено: ${skipped}.`;
     }
 
     function render(){
@@ -311,6 +360,7 @@
       updateCompletion();
       prevBtn.disabled = state.current === 0;
       nextBtn.textContent = state.current === total - 1 ? "Отправить" : "Далее";
+      skipBtn.style.display = isOptional(q) ? "inline-flex" : "none";
       screen.innerHTML = "";
       warn.textContent = "";
 
@@ -320,9 +370,18 @@
 
       const status = document.createElement("div");
       const answered = isQuestionAnswered(q);
-      status.className = `status-chip${answered ? " done" : ""}`;
-      status.textContent = answered ? "✓ Вопрос заполнен" : "• Требуется ответ";
+      const skipped = Boolean(state.skipped[questionId(q)]);
+      const optional = isOptional(q);
+      status.className = `status-chip${answered ? " done" : optional ? " optional" : ""}`;
+      status.textContent = answered ? "✓ Вопрос заполнен" : skipped ? "→ Вопрос пропущен" : optional ? "• Необязательный вопрос" : "• Требуется ответ";
       screen.appendChild(status);
+
+      if (optional){
+        const banner = document.createElement("div");
+        banner.className = "banner";
+        banner.textContent = "Можно пропустить этот вопрос, если сложно ответить технически.";
+        screen.appendChild(banner);
+      }
 
       if (q.type === "single") renderSingle(q);
       if (q.type === "multi") renderMulti(q);
@@ -401,6 +460,16 @@
     function renderVisual(q){
       const obj = getAnswer(q.block,q.key,{});
       const wrap = document.createElement("div"); wrap.className = "spaced";
+      const quick = document.createElement("button");
+      quick.className = "btn ghost";
+      quick.textContent = "Везде выбрать «Не знаю»";
+      quick.addEventListener("click", ()=>{
+        const next = {};
+        q.items.forEach((_, idx)=>{ next[`item${idx+1}`] = "Не знаю / не могу определить"; });
+        setAnswer(q.block,q.key,next);
+        render();
+      });
+      wrap.appendChild(quick);
       q.items.forEach((it,idx)=>{
         const row = document.createElement("div"); row.className = "rating-row";
         const sel = document.createElement("select");
@@ -498,23 +567,29 @@
         const row = document.createElement("div"); row.className = "rating-row";
         row.innerHTML = `<strong>${task}</strong>`;
         const grid = document.createElement("div"); grid.className = "grid-2";
-        const h = document.createElement("input"); h.type="number"; h.min=0; h.placeholder="Время, часов"; h.value=val.hours;
-        const c = document.createElement("input"); c.type="number"; c.min=0; c.placeholder="Стоимость, рублей"; c.value=val.cost;
+        const h = document.createElement("input"); h.type="number"; h.min=0; h.placeholder="Время, часов (необязательно)"; h.value=val.hours;
+        const c = document.createElement("input"); c.type="number"; c.min=0; c.placeholder="Стоимость, рублей (необязательно)"; c.value=val.cost;
         h.addEventListener("input",()=>{ val.hours = h.value; obj[key]=val; setAnswer(q.block,q.key,obj); });
         c.addEventListener("input",()=>{ val.cost = c.value; obj[key]=val; setAnswer(q.block,q.key,obj); });
         grid.append(h,c); row.appendChild(grid); wrap.appendChild(row);
       });
+      const helper = document.createElement("p");
+      helper.className = "helper";
+      helper.textContent = "Можно заполнить только те задания, в которых уверены.";
+      wrap.appendChild(helper);
       screen.appendChild(wrap);
     }
     function renderAssignment(){
       const v = getAnswer("block5","q1",{ sent_files:false, finish_clicked:false });
       const check = document.createElement("label"); check.className = "opt" + (v.sent_files?" active":"");
-      check.innerHTML = `<input type='checkbox' ${v.sent_files?"checked":""}/> <span>Подтверждаю отправку STL и STP на technopark@rgsu.net</span>`;
+      check.innerHTML = `<input type='checkbox' ${v.sent_files?"checked":""}/> <span>Файлы STL/STP уже отправлены (необязательно для продолжения теста)</span>`;
       check.addEventListener("click",(e)=>{ e.preventDefault(); v.sent_files=!v.sent_files; setAnswer("block5","q1",v); logEvent("assignment21_confirmed", { sent_files: v.sent_files }); render(); });
-      const btn = document.createElement("button"); btn.className = "btn" + (v.finish_clicked?" primary":""); btn.textContent = "Завершить задание";
+      const btn = document.createElement("button"); btn.className = "btn" + (v.finish_clicked?" primary":""); btn.textContent = "Отметить как выполненное";
       btn.addEventListener("click",()=>{ v.finish_clicked = true; setAnswer("block5","q1",v); logEvent("assignment21_finish_click", {}); render(); });
-      const info = document.createElement("p"); info.className="tiny"; info.textContent = "Тема письма: ФИО, задание 21, практика.";
-      screen.append(check, btn, info);
+      const skip = document.createElement("button"); skip.className = "btn ghost"; skip.textContent = "Нет технической возможности — пропустить";
+      skip.addEventListener("click", ()=>{ setAnswer("block5","q1",{ sent_files:false, finish_clicked:false, tech_issue:true }); state.skipped["block5.q1"] = true; render(); });
+      const info = document.createElement("p"); info.className="tiny"; info.textContent = "Если не получается отправить файлы сейчас, просто пропустите вопрос.";
+      screen.append(check, btn, skip, info);
     }
     function renderDesign(){
       const obj = getAnswer("block6","q1_7",{});
@@ -539,7 +614,7 @@
       a.addEventListener("click",()=>{ v.path="chess"; setAnswer("block7","q1",v); logEvent("chess_path_selected", { path:"chess" }); render(); });
       b.addEventListener("click",()=>{ v.path="cup"; setAnswer("block7","q1",v); logEvent("chess_path_selected", { path:"cup" }); render(); });
       screen.append(a,b);
-      const note = document.createElement("p"); note.className="tiny"; note.textContent="Общий лимит: 60 минут."; screen.appendChild(note);
+      const note = document.createElement("p"); note.className="tiny"; note.textContent="Практический блок можно пропустить, если нет подходящего оборудования."; screen.appendChild(note);
       if (v.path==="chess"){
         const correct = document.createElement("label"); correct.className="row tiny"; correct.innerHTML = `<input type='checkbox' ${v.chess_correct?"checked":""}/> Шахматная задача решена верно`;
         const ct = document.createElement("input"); ct.type="number"; ct.placeholder="Время шахматной задачи, сек"; ct.value=v.chess_time_sec;
@@ -619,10 +694,10 @@
       if (q.type==="multi" && (!Array.isArray(v) || !v.length)) return {ok:false,msg:"Выберите хотя бы один вариант."};
       if (q.type==="text" && q.required && !String(v||"").trim()) return {ok:false,msg:"Введите ответ."};
       if (q.type==="longtext" && !String(v||"").trim()) return {ok:false,msg:"Поле обязательно."};
-      if (q.type==="visual"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Заполните все карточки."}; }
-      if (q.type==="match"){ if (!v || Object.keys(v).length < 6 || Object.values(v).some(x=>!x)) return {ok:false,msg:"Соотнесите все термины."}; }
-      if (q.type==="order"){
-        if (!Array.isArray(v) || v.length !== 6 || v.some(x=>!x)) return {ok:false,msg:"Укажите порядок для каждого этапа."};
+      if (q.type==="visual" && v && Object.values(v).some(x=>!x)) return {ok:false,msg:"Либо заполните все карточки, либо пропустите вопрос."};
+      if (q.type==="match" && v && Object.values(v).some(x=>!x)) return {ok:false,msg:"Заполните все пары или пропустите вопрос."};
+      if (q.type==="order" && Array.isArray(v) && v.length){
+        if (v.some(x=>!x)) return {ok:false,msg:"Укажите порядок полностью или очистите и пропустите вопрос."};
         const numbers = v.map(Number);
         if (numbers.some(x=>!Number.isInteger(x) || x < 1 || x > 6)) return {ok:false,msg:"Используйте целые номера от 1 до 6."};
         if (new Set(numbers).size !== 6) return {ok:false,msg:"Каждый номер должен использоваться только один раз."};
@@ -631,13 +706,13 @@
       if (q.type==="stream"){ if (!v || Object.keys(v).length < 5) return {ok:false,msg:"Ответьте на все 5 кейсов."}; }
       if (q.type==="projects"){ if (!Array.isArray(state.answers.block3.projects) || state.answers.block3.projects.some(p=>!p.choice)) return {ok:false,msg:"Для каждого проекта выберите 👍 или 👎."}; }
       if (q.type==="labor"){
-        const obj = v || {}; for (let i=1;i<=5;i++){ if (!obj[`task${i}`]?.hours || !obj[`task${i}`]?.cost) return {ok:false,msg:"Заполните время и стоимость для всех заданий."}; }
+        const obj = v || {};
+        const hasPartial = Array.from({length:5}, (_,i)=>obj[`task${i+1}`]).some(t => t && ((t.hours && !t.cost) || (!t.hours && t.cost)));
+        if (hasPartial) return {ok:false,msg:"В строке задания укажите и время, и стоимость, либо оставьте оба поля пустыми."};
       }
-      if (q.type==="assignment"){
-        const a = v || {}; if (!a.sent_files || !a.finish_clicked) return {ok:false,msg:"Подтвердите отправку файлов и нажмите «Завершить задание»."};
-      }
+      if (q.type==="assignment") return {ok:true};
       if (q.type==="design"){ if (!v || designExamples.some(n=>!v[n])) return {ok:false,msg:"Оцените все объекты от 1 до 5."}; }
-      if (q.type==="chess"){ if (!v || !v.path) return {ok:false,msg:"Выберите траекторию."}; }
+      if (q.type==="chess" && v && v.path && v.path !== "chess" && v.path !== "cup") return {ok:false,msg:"Выберите корректную траекторию."};
       if (q.type==="neural"){
         const tools = getAnswer("block8","tools",{});
         for (const name of neuralTools){ const t = tools[name]; if (!t) return {ok:false,msg:"Заполните все строки по нейросетям."}; if (t.used && (!t.rating || t.rating<1 || t.rating>5)) return {ok:false,msg:`Укажите рейтинг 1-5 для ${name}.`}; }
