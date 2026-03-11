@@ -5,125 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Технопарк РГСУ — Распределение практикантов</title>
   <style>
-    :root {
-      --bg:#f6f7f9; --surface:#fff; --surface-muted:#f9fafb; --text:#13161c; --muted:#5e6673;
-      --border:#e4e8ef; --accent:#1f64ff; --accent-soft:#eaf0ff; --ok:#1f7a3f; --warn:#9d5c00;
-      --shadow:0 12px 28px rgba(14,25,40,.08); --r-xl:24px; --r-lg:16px; --r-md:12px;
-    }
-    *{box-sizing:border-box} html{scroll-behavior:smooth}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    a,button,input,select,textarea{font:inherit;color:inherit}
-    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-    .container{width:min(1220px,calc(100% - 28px));margin:0 auto}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow)}
-
-    .header{position:sticky;top:0;z-index:100;background:rgba(246,247,249,.84);backdrop-filter:blur(16px);border-bottom:1px solid #e4e8efb5}
-    .header-inner{min-height:72px;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:10px 0}
-    .brand-title{font-size:.98rem;font-weight:700}.brand-sub{font-size:.8rem;color:var(--muted)}
-    .view-switch{display:inline-flex;padding:4px;border:1px solid var(--border);border-radius:999px;background:var(--surface)}
-    .btn,.switch{border:1px solid transparent;background:#fff;padding:9px 14px;border-radius:12px;cursor:pointer;transition:.2s}
-    .switch{border-radius:999px}.switch.active{background:var(--accent-soft);border-color:#d4e1ff;color:var(--accent);font-weight:600}
-    .btn:hover{transform:translateY(-1px)} .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)} .btn-primary:hover{background:#0d4ad3}
-    .header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .live-kpis{display:flex;gap:6px;flex-wrap:wrap}
-    .chip{font-size:.75rem;border:1px solid var(--border);padding:4px 9px;border-radius:999px;background:#fff;color:#4c5360}
-
-    main{padding-bottom:70px}
-    .hero{margin:22px 0;padding:30px;border-radius:var(--r-xl)}
-    h1{margin:0;font-size:clamp(1.6rem,3.2vw,2.5rem);letter-spacing:-.03em}
-    .muted{color:var(--muted)}
-    .hero p{max-width:760px;margin:12px 0 20px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
-    .metric{border:1px solid var(--border);padding:14px;border-radius:12px;background:var(--surface-muted)}
-    .metric strong{display:block;font-size:1.3rem}
-
-    section{margin-bottom:14px} .panel{padding:18px}
-    .section-title{margin:0 0 12px;font-size:1.15rem}
-    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .grid-5{display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:10px}
-    label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:6px}
-    input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
-    textarea{min-height:90px;resize:vertical}
-    .progress-wrap{display:grid;gap:6px;margin-top:10px}
-    .progress{height:8px;border-radius:999px;background:#edf0f5;overflow:hidden}
-    .progress > span{display:block;height:100%;background:var(--accent);width:0;transition:.25s}
-
-    .quick-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .qf{padding:7px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:.85rem}
-    .qf.active{border-color:#cfe0ff;background:#edf3ff;color:#2057d8}
-
-    .sub-tools{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-    .toggles{display:flex;gap:10px;flex-wrap:wrap}
-    .toggle{display:inline-flex;gap:6px;align-items:center;font-size:.88rem;color:#404855}
-
-    table{width:100%;border-collapse:collapse;font-size:.94rem} thead th{padding:11px 10px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)}
-    tbody td{padding:11px 10px;vertical-align:top;border-bottom:1px solid var(--border)} tbody tr:hover{background:#fbfcff}
-    .badge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:.78rem;font-weight:600}
-    .status-Набор\ открыт{background:#e8f8ee;color:#1f7a3f}.status-Осталось\ мало\ мест{background:#fff6e8;color:#9d5c00}
-    .status-Идет\ работа{background:#edf2ff;color:#3452a4}.status-Требуются\ сильные\ участники{background:#ffeef0;color:#a42b3b}
-    .recommend{background:#ebf2ff;color:#2b59c8}
-    .tags{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:.77rem;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:#4f5663}
-    .project-title{font-weight:600}.project-desc{margin:4px 0 6px;color:var(--muted)}
-    .table-actions,.choice-actions{display:flex;flex-wrap:wrap;gap:6px}.btn-sm{padding:7px 10px;border-radius:10px;font-size:.82rem}
-
-    .cards{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .project-card{padding:14px;animation:fadeUp .3s ease;transition:.2s}
-    .project-card:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(14,25,40,.12)}
-    .tasks{margin:8px 0;padding-left:17px}.tasks li{margin:0 0 3px}
-    .match{height:6px;background:#eef1f6;border-radius:999px;overflow:hidden}.match span{display:block;height:100%;background:#1f64ff}
-    .card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}
-
-    .empty{padding:22px;text-align:center;border:1px dashed var(--border);border-radius:12px;background:#fafbfc;color:var(--muted)}
-    .choices{display:grid;gap:9px}.choice{padding:12px;border:1px solid var(--border);border-radius:12px;display:flex;justify-content:space-between;gap:8px;background:#fff}
-
-    .recent-list{display:flex;gap:8px;overflow:auto;padding-bottom:2px}.recent-item{min-width:280px;padding:10px;border:1px solid var(--border);border-radius:12px;background:#fff}
-
-    .footer{text-align:center;color:#626b79;font-size:.92rem;margin:24px 0}
-
-    .overlay{position:fixed;inset:0;background:rgba(6,14,30,.35);display:none;align-items:center;justify-content:center;padding:14px;z-index:200}
-    .overlay.open{display:flex}.modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 28px 64px rgba(10,18,32,.28);opacity:0;transform:translateY(10px) scale(.98);animation:modalIn .2s forwards}
-    .m-h,.m-b,.m-f{padding:15px 16px}.m-h{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}.m-f{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border)}
-    .icon-btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer}
-
-    .toasts{position:fixed;right:14px;bottom:14px;display:grid;gap:8px;z-index:300}
-    .toast{background:#111;color:#fff;padding:10px 12px;border-radius:10px;display:flex;align-items:center;gap:8px;animation:fadeUp .2s ease}
-    .toast button{border:1px solid #3c4250;background:#1b1f27;color:#fff;padding:5px 8px;border-radius:8px;cursor:pointer}
-
-    .fab-top{position:fixed;right:16px;bottom:16px;border-radius:999px;width:44px;height:44px;display:none;place-items:center;z-index:90}
-    .mobile-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:none;z-index:99}
-    .mobile-bar .container{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0}
-
-    .hidden{display:none!important}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}} @keyframes modalIn{to{opacity:1;transform:translateY(0) scale(1)}}
-
-    @media (max-width:1024px){.grid-4,.grid-5,.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media (max-width:760px){
-      .header-inner{grid-template-columns:1fr;align-items:start}.metrics,.grid-4,.grid-5,.cards{grid-template-columns:1fr}
-      #tableView thead{display:none} #tableView,#tableView tbody,#tableView tr,#tableView td{display:block;width:100%}
-      #tableView tr{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:#fff}
-      #tableView td{border:none;border-bottom:1px dashed var(--border);padding:8px 10px} #tableView td:last-child{border-bottom:none}
-      #tableView td::before{content:attr(data-label);display:block;font-size:.74rem;color:var(--muted);margin-bottom:2px}
-      .mobile-bar{display:block}
-    }
+    :root{--bg:#f6f7f9;--surface:#fff;--text:#13161c;--muted:#5f6774;--border:#e4e8ef;--accent:#1f64ff;--accent-soft:#eaf0ff;--shadow:0 10px 30px rgba(15,25,45,.08);--r-xl:24px;--r-lg:16px;--r-md:12px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select,textarea,a{font:inherit;color:inherit}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .container{width:min(1200px,calc(100% - 28px));margin:0 auto}.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+    .header{position:sticky;top:0;z-index:100;background:rgba(246,247,249,.85);backdrop-filter:blur(14px);border-bottom:1px solid #e4e8efc5}
+    .header-inner{min-height:72px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
+    .brand-title{font-weight:700}.brand-sub{font-size:.82rem;color:var(--muted)}.row{display:flex;gap:10px;flex-wrap:wrap}
+    .switch-wrap{display:inline-flex;padding:4px;border:1px solid var(--border);border-radius:999px;background:#fff}.switch,.btn{border:1px solid transparent;background:#fff;padding:9px 14px;border-radius:12px;cursor:pointer;transition:.2s}
+    .switch{border-radius:999px}.switch.active{background:var(--accent-soft);color:var(--accent);border-color:#d7e3ff;font-weight:600}.btn:hover{transform:translateY(-1px)}.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    .hero{margin:22px 0;padding:30px;border-radius:var(--r-xl)}h1{margin:0;font-size:clamp(1.6rem,3.2vw,2.5rem);letter-spacing:-.03em}.muted{color:var(--muted)}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}.metric{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafbfc}.metric strong{display:block;font-size:1.25rem}
+    .panel{padding:18px}.section-title{margin:0 0 12px;font-size:1.14rem}.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.grid-5{display:grid;grid-template-columns:2fr repeat(4,minmax(0,1fr));gap:10px}
+    label{display:block;margin-bottom:6px;font-size:.88rem;color:var(--muted)}input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .energy-wrap{margin-top:10px;border:1px solid var(--border);border-radius:12px;padding:12px;background:#fafbff}
+    .energy-line{height:10px;border-radius:999px;background:#eaf0fb;overflow:hidden;margin-bottom:10px}.energy-fill{height:100%;width:25%;background:linear-gradient(90deg,#4f89ff,#1f64ff);transition:.35s}
+    .energy-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.energy-card{border:1px solid var(--border);border-radius:12px;padding:10px;text-align:left;background:#fff;cursor:pointer;transition:.2s}
+    .energy-card.active{border-color:#cfe0ff;background:#edf3ff}.energy-card .emoji{font-size:1.35rem;display:block;margin-bottom:4px}.energy-card small{display:block;color:var(--muted)}
+    .quick-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.qf{border:1px solid var(--border);border-radius:999px;padding:7px 10px;background:#fff;cursor:pointer}.qf.active{background:#edf3ff;border-color:#cfe0ff;color:#2057d8}
+    .sub-tools{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px}.toggles{display:flex;gap:10px;flex-wrap:wrap}.toggle{display:inline-flex;gap:6px;align-items:center;color:#434b58;font-size:.88rem}
+    table{width:100%;border-collapse:collapse;font-size:.94rem}thead th{text-align:left;padding:11px 10px;color:var(--muted);border-bottom:1px solid var(--border)}tbody td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:top}tbody tr:hover{background:#fbfcff}
+    .badge{display:inline-flex;padding:4px 9px;border-radius:999px;font-size:.78rem;font-weight:600}.recommend{background:#ebf2ff;color:#2b59c8}.status-Набор\ открыт{background:#e8f8ee;color:#1f7a3f}.status-Осталось\ мало\ мест{background:#fff6e8;color:#9d5c00}.status-Идет\ работа{background:#edf2ff;color:#3452a4}.status-Требуются\ сильные\ участники{background:#ffeef0;color:#a42b3b}
+    .tags{display:flex;gap:6px;flex-wrap:wrap}.tag{border:1px solid var(--border);padding:3px 8px;border-radius:999px;font-size:.77rem;color:#4d5663}.project-title{font-weight:600}.project-desc{margin:4px 0 6px;color:var(--muted)}.table-actions,.choice-actions{display:flex;flex-wrap:wrap;gap:6px}.btn-sm{padding:7px 10px;border-radius:10px;font-size:.82rem}
+    .cards{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.project-card{padding:14px;transition:.2s}.project-card:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(14,25,40,.11)}.tasks{margin:8px 0;padding-left:17px}.tasks li{margin:0 0 3px}
+    .empty{padding:22px;text-align:center;border:1px dashed var(--border);border-radius:12px;background:#fafbfc;color:var(--muted)}.hidden{display:none!important}
+    .choices{display:grid;gap:9px}.choice{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}.priority{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#edf3ff;color:#1f64ff;font-weight:700;font-size:.82rem}
+    .overlay{position:fixed;inset:0;background:rgba(6,14,30,.35);display:none;align-items:center;justify-content:center;padding:14px;z-index:200}.overlay.open{display:flex}.modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 28px 64px rgba(10,18,32,.28)}
+    .m-h,.m-b,.m-f{padding:15px 16px}.m-h{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}.m-f{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border)}.icon-btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer}
+    .toasts{position:fixed;right:14px;bottom:14px;display:grid;gap:8px;z-index:300}.toast{background:#111;color:#fff;padding:10px 12px;border-radius:10px}
+    .footer{text-align:center;color:#646d7a;font-size:.92rem;margin:24px 0}
+    @media (max-width:1024px){.grid-4,.grid-5,.energy-cards,.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:760px){.metrics,.grid-4,.grid-5,.energy-cards,.cards{grid-template-columns:1fr}#tableView thead{display:none}#tableView,#tableView tbody,#tableView tr,#tableView td{display:block;width:100%}#tableView tr{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:#fff}#tableView td{border:none;border-bottom:1px dashed var(--border);padding:8px 10px}#tableView td:last-child{border-bottom:none}#tableView td::before{content:attr(data-label);display:block;font-size:.74rem;color:var(--muted);margin-bottom:2px}}
   </style>
 </head>
 <body>
 <header class="header">
   <div class="container header-inner">
-    <div>
-      <div class="brand-title">Технопарк РГСУ</div>
-      <div class="brand-sub">Распределение практикантов</div>
-    </div>
-    <div class="view-switch" role="group" aria-label="Переключение режима отображения">
-      <button id="viewTable" class="switch active" type="button">Таблица</button>
-      <button id="viewCards" class="switch" type="button">Карточки</button>
-    </div>
-    <div class="header-right">
-      <div class="live-kpis" id="liveKpis"></div>
-      <button id="goChoices" class="btn" type="button" aria-label="Перейти в Мои выборы">Мои выборы</button>
-      <button id="openHelp" class="btn" type="button" aria-label="Открыть подсказки">?</button>
-    </div>
+    <div><div class="brand-title">Технопарк РГСУ</div><div class="brand-sub">Распределение практикантов</div></div>
+    <div class="switch-wrap" role="group" aria-label="Режим отображения"><button id="viewTable" class="switch active" type="button">Таблица</button><button id="viewCards" class="switch" type="button">Карточки</button></div>
+    <button id="goChoices" class="btn" type="button">Мои выборы</button>
   </div>
 </header>
 
@@ -131,16 +51,8 @@
   <section class="hero card" id="top">
     <h1>Практика в проектах Технопарка РГСУ</h1>
     <p class="muted">Выберите проект, отметьте интересные направления и отправьте заявку на участие в работе лаборатории.</p>
-    <div class="row">
-      <a class="btn btn-primary" href="#projectsSection">Смотреть проекты</a>
-      <a class="btn" href="#myChoicesSection">Мои выборы</a>
-      <button class="btn" id="showRecommended" type="button">Показать рекомендуемые</button>
-    </div>
-    <div class="metrics">
-      <article class="metric"><strong>14 проектов</strong><span class="muted">Реальные задачи лаборатории</span></article>
-      <article class="metric"><strong>9 направлений</strong><span class="muted">От документации до веб-интерфейсов</span></article>
-      <article class="metric"><strong>Быстрая заявка</strong><span class="muted">Подайте участие за 1 минуту</span></article>
-    </div>
+    <div class="row"><a href="#projectsSection" class="btn btn-primary">Смотреть проекты</a><a href="#myChoicesSection" class="btn">Мои выборы</a></div>
+    <div class="metrics"><article class="metric"><strong>14 проектов</strong><span class="muted">Реальные задачи лаборатории</span></article><article class="metric"><strong>9 направлений</strong><span class="muted">От документации до веб-интерфейсов</span></article><article class="metric"><strong>Быстрая заявка</strong><span class="muted">Подайте участие за 1 минуту</span></article></div>
   </section>
 
   <section class="card panel" id="profileSection">
@@ -149,17 +61,15 @@
       <div><label for="profileId">Фамилия или ID</label><input id="profileId" placeholder="Иванов / st-147" /></div>
       <div><label for="profileLevel">Уровень</label><select id="profileLevel"><option>Новичок</option><option>Технопарковец</option></select></div>
       <div><label for="profileDirection">Направление интереса</label><select id="profileDirection"><option>Любое направление</option><option>3D-моделирование</option><option>3D-печать</option><option>3D-сканирование</option><option>Реверсивный инжиниринг</option><option>Промышленный дизайн</option><option>Веб-интерфейсы</option><option>Контент и визуальные материалы</option><option>Документация</option><option>Организационная помощь</option></select></div>
-      <div><label for="profileHours">Сколько часов в неделю готов уделять</label><select id="profileHours"><option>2-4 часа</option><option>5-8 часов</option><option>9-12 часов</option><option>12+ часов</option></select></div>
+      <div>
+        <label>Текущий настрой и вовлечённость</label>
+        <div class="energy-wrap">
+          <div class="energy-line" aria-label="Шкала вовлеченности"><div id="energyFill" class="energy-fill"></div></div>
+          <div id="energyCards" class="energy-cards"></div>
+        </div>
+      </div>
     </div>
-    <div class="progress-wrap">
-      <div class="muted" id="profileProgressText">Профиль заполнен на 0%</div>
-      <div class="progress" aria-label="Прогресс заполнения профиля"><span id="profileProgressBar"></span></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <button id="saveProfile" class="btn btn-primary" type="button">Сохранить профиль</button>
-      <button id="clearProfile" class="btn" type="button">Очистить</button>
-      <span class="muted" id="savedAt"></span>
-    </div>
+    <div class="row" style="margin-top:10px"><button id="saveProfile" class="btn btn-primary" type="button">Сохранить профиль</button><button id="clearProfile" class="btn" type="button">Очистить</button></div>
   </section>
 
   <section class="card panel" id="projectsSection">
@@ -169,194 +79,130 @@
       <div><label for="directionFilter">Направление</label><select id="directionFilter"></select></div>
       <div><label for="levelFilter">Уровень</label><select id="levelFilter"><option>Все</option><option>Новичок</option><option>Технопарковец</option></select></div>
       <div><label for="statusFilter">Статус</label><select id="statusFilter"><option>Все</option><option>Набор открыт</option><option>Осталось мало мест</option><option>Идет работа</option><option>Требуются сильные участники</option></select></div>
-      <div><label for="sortFilter">Сортировка</label><select id="sortFilter"><option>По названию</option><option>По часам</option><option>По уровню</option><option>Сначала рекомендуемые</option></select></div>
+      <div><label for="sortFilter">Сортировка</label><select id="sortFilter"><option>По названию</option><option>По уровню</option><option>Сначала рекомендуемые</option></select></div>
     </div>
     <div class="quick-filters" id="quickFilters"></div>
-    <div class="sub-tools">
-      <div class="toggles">
-        <label class="toggle"><input id="openOnly" type="checkbox"/> Только с открытым набором</label>
-        <label class="toggle"><input id="hideApplied" type="checkbox"/> Скрыть поданные заявки</label>
-      </div>
-      <button id="resetFilters" class="btn" type="button">Сбросить фильтры</button>
-    </div>
+    <div class="sub-tools"><div class="toggles"><label class="toggle"><input id="openOnly" type="checkbox"/> Только с открытым набором</label></div><button id="resetFilters" class="btn" type="button">Сбросить фильтры</button></div>
   </section>
 
   <section class="card panel">
-    <div class="sub-tools">
-      <h2 class="section-title" style="margin:0">Проекты</h2>
-      <div class="muted" id="projectsCount"></div>
-    </div>
-    <table id="tableView" aria-label="Таблица проектов"><thead><tr><th>Проект</th><th>Направление</th><th>Уровень</th><th>Часы</th><th>Статус</th><th>Рекомендуется</th><th>Действие</th></tr></thead><tbody id="tableBody"></tbody></table>
+    <div class="sub-tools"><h2 class="section-title" style="margin:0">Проекты</h2><div class="muted" id="projectsCount"></div></div>
+    <table id="tableView" aria-label="Таблица проектов"><thead><tr><th>Проект</th><th>Направление</th><th>Уровень</th><th>Статус</th><th>Рекомендуется</th><th>Действие</th></tr></thead><tbody id="tableBody"></tbody></table>
     <div id="cardsView" class="cards"></div>
     <div id="projectsEmpty" class="empty hidden">Проекты не найдены. Попробуйте изменить фильтры.</div>
   </section>
 
-  <section class="card panel" id="recentSection">
-    <h2 class="section-title">Недавно просмотренные</h2>
-    <div id="recentList" class="recent-list"></div>
-    <div id="recentEmpty" class="empty">Пока вы не открывали проекты. Нажмите «Подробнее», чтобы добавить в историю.</div>
-  </section>
-
   <section class="card panel" id="myChoicesSection">
     <h2 class="section-title">Мои выборы</h2>
+    <p class="muted">Расставьте приоритеты: 1 — самый важный проект, далее по порядку.</p>
     <div id="choices" class="choices"></div>
     <div id="choicesEmpty" class="empty hidden">Пока ничего не выбрано. Откройте проекты и отметьте подходящие варианты.</div>
-    <div class="row" style="margin-top:10px"><button id="download" class="btn" type="button">Скачать выборы в JSON</button></div>
+    <div class="row" style="margin-top:10px"><button id="download" class="btn" type="button">Скачать выборы в JSON</button><button id="sendEmail" class="btn btn-primary" type="button">Отправить заявку</button></div>
   </section>
 
-  <footer class="footer">
-    <div>Технопарк РГСУ</div>
-    <div>Лаборатория промышленного дизайна и инжиниринга</div>
-    <div>MVP для распределения практикантов</div>
-  </footer>
+  <footer class="footer"><div>Технопарк РГСУ</div><div>Лаборатория промышленного дизайна и инжиниринга</div><div>MVP для распределения практикантов</div></footer>
 </main>
 
-<button id="toTop" class="btn btn-primary fab-top" type="button" aria-label="Наверх">↑</button>
-<nav class="mobile-bar" aria-label="Мобильная навигация">
-  <div class="container">
-    <a href="#projectsSection" class="btn">Проекты</a>
-    <a href="#myChoicesSection" class="btn">Мои выборы</a>
-    <button id="mobileApply" class="btn btn-primary" type="button">Подать заявку</button>
-  </div>
-</nav>
+<div id="projectOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="projectTitle"><div class="m-h"><h3 id="projectTitle" style="margin:0"></h3><button id="closeProject" class="icon-btn" type="button" aria-label="Закрыть">✕</button></div><div id="projectBody" class="m-b"></div><div class="m-f"><button id="mInterested" class="btn" type="button">Интересно</button><button id="mStrong" class="btn" type="button">Очень подходит</button><button id="mApply" class="btn btn-primary" type="button">Подать заявку</button><button id="mClose" class="btn" type="button">Закрыть</button></div></div></div>
 
-<div id="projectOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="projectTitle"><div class="m-h"><h3 id="projectTitle" style="margin:0"></h3><button id="closeProject" class="icon-btn" type="button" aria-label="Закрыть">✕</button></div><div class="m-b" id="projectBody"></div><div class="m-f"><button id="mInterested" class="btn" type="button">Интересно</button><button id="mStrong" class="btn" type="button">Очень подходит</button><button id="mApply" class="btn btn-primary" type="button">Подать заявку</button><button id="mClose" class="btn" type="button">Закрыть</button></div></div></div>
-
-<div id="applyOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="applyTitle"><div class="m-h"><h3 id="applyTitle" style="margin:0">Подать заявку</h3><button id="closeApply" class="icon-btn" type="button" aria-label="Закрыть">✕</button></div><form class="m-b" id="applyForm"><div style="display:grid;gap:10px"><div><label for="aProject">Проект</label><input id="aProject" readonly/></div><div><label for="aPerson">Фамилия или ID</label><input id="aPerson" required/></div><div><label for="aHours">Часы в неделю</label><select id="aHours" required><option>2-4 часа</option><option>5-8 часов</option><option>9-12 часов</option><option>12+ часов</option></select></div><div><label for="aComment">Комментарий</label><textarea id="aComment"></textarea></div></div></form><div class="m-f"><button id="submitApply" class="btn btn-primary" type="button">Отправить заявку</button><button id="aClose" class="btn" type="button">Закрыть</button></div></div></div>
-
-<div id="helpOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle"><div class="m-h"><h3 id="helpTitle" style="margin:0">Горячие клавиши</h3><button id="closeHelp" class="icon-btn" type="button">✕</button></div><div class="m-b"><ul><li><b>?</b> — открыть подсказки</li><li><b>Esc</b> — закрыть модальное окно</li><li><b>g p</b> — перейти к проектам</li><li><b>g m</b> — перейти к «Мои выборы»</li><li><b>t</b> — режим таблицы</li><li><b>c</b> — режим карточек</li></ul></div><div class="m-f"><button id="helpClose2" class="btn" type="button">Закрыть</button></div></div></div>
-
-<div id="compareOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="compareTitle"><div class="m-h"><h3 id="compareTitle" style="margin:0">Сравнение проектов</h3><button id="closeCompare" class="icon-btn" type="button">✕</button></div><div class="m-b" id="compareBody"></div><div class="m-f"><button id="compareClose2" class="btn" type="button">Закрыть</button></div></div></div>
+<div id="applyOverlay" class="overlay" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="applyTitle"><div class="m-h"><h3 id="applyTitle" style="margin:0">Подать заявку</h3><button id="closeApply" class="icon-btn" type="button" aria-label="Закрыть">✕</button></div><form id="applyForm" class="m-b"><div style="display:grid;gap:10px"><div><label for="aProject">Проект</label><input id="aProject" readonly/></div><div><label for="aPerson">Фамилия или ID</label><input id="aPerson" required/></div><div><label for="aComment">Комментарий</label><textarea id="aComment"></textarea></div></div></form><div class="m-f"><button id="submitApply" class="btn btn-primary" type="button">Отправить заявку</button><button id="aClose" class="btn" type="button">Закрыть</button></div></div></div>
 
 <div id="toasts" class="toasts" aria-live="polite"></div>
 
 <script>
 // 1. Демонстрационные данные
 const projects=[
-{id:1,title:'Создание скульптур с помощью 3D-сканирования и 3D-печати',shortDescription:'Сканирование объектов и подготовка художественных реплик для экспозиции.',fullDescription:'Проект ориентирован на создание музейных и учебных скульптурных копий. Участник работает со сканером, обработкой и печатью.',direction:'3D-сканирование',level:'Технопарковец',tasks:['Подготавливать объекты к сканированию','Очищать облако точек','Готовить модели к печати','Контролировать финальные макеты'],skills:['3D-редакторы','Mesh-обработка','Работа с оборудованием'],hours:'9-12 часов',status:'Набор открыт',tags:['сканирование','печать','экспозиция']},
-{id:2,title:'Подготовка моделей для 3D-печати',shortDescription:'Базовый пайплайн от файла до готового отпечатка.',fullDescription:'Стартовый проект для входа в процессы лаборатории: проверка модели, слайсинг и контроль качества.',direction:'3D-печать',level:'Новичок',tasks:['Проверять геометрию','Настраивать параметры печати','Контролировать первый слой'],skills:['Внимательность','Базовая 3D-грамотность','Работа по инструкции'],hours:'2-4 часа',status:'Набор открыт',tags:['слайсинг','печать','подготовка']},
-{id:3,title:'Обработка 3D-сканов и восстановление геометрии',shortDescription:'Восстановление сложной геометрии после сканирования.',fullDescription:'Работа с шумными и неполными сканами для получения инженерно пригодных моделей.',direction:'Реверсивный инжиниринг',level:'Технопарковец',tasks:['Очищать и сшивать сканы','Восстанавливать поверхности','Экспортировать CAD-модели'],skills:['Mesh-инструменты','CAD-база','Точность'],hours:'9-12 часов',status:'Требуются сильные участники',tags:['mesh','геометрия','reverse']},
+{id:1,title:'Создание скульптур с помощью 3D-сканирования и 3D-печати',shortDescription:'Сканирование объектов и подготовка художественных реплик для экспозиции.',fullDescription:'Проект ориентирован на создание музейных и учебных скульптурных копий.',direction:'3D-сканирование',level:'Технопарковец',tasks:['Подготавливать объекты к сканированию','Очищать облако точек','Готовить модели к печати'],skills:['3D-редакторы','Mesh-обработка','Работа с оборудованием'],hours:'9-12 часов',status:'Набор открыт',tags:['сканирование','печать','экспозиция']},
+{id:2,title:'Подготовка моделей для 3D-печати',shortDescription:'Базовый пайплайн от файла до готового отпечатка.',fullDescription:'Стартовый проект для входа в процессы лаборатории.',direction:'3D-печать',level:'Новичок',tasks:['Проверять геометрию','Настраивать параметры печати','Контролировать первый слой'],skills:['Внимательность','Базовая 3D-грамотность','Работа по инструкции'],hours:'2-4 часа',status:'Набор открыт',tags:['слайсинг','печать','подготовка']},
+{id:3,title:'Обработка 3D-сканов и восстановление геометрии',shortDescription:'Восстановление сложной геометрии после сканирования.',fullDescription:'Работа с шумными и неполными сканами для инженерных моделей.',direction:'Реверсивный инжиниринг',level:'Технопарковец',tasks:['Очищать и сшивать сканы','Восстанавливать поверхности','Экспортировать CAD-модели'],skills:['Mesh-инструменты','CAD-база','Точность'],hours:'9-12 часов',status:'Требуются сильные участники',tags:['mesh','геометрия','reverse']},
 {id:4,title:'Разработка учебных инженерных макетов',shortDescription:'Наглядные макеты для занятий и мастер-классов.',fullDescription:'Проект по созданию учебных наборов и демонстрационных макетов.',direction:'Промышленный дизайн',level:'Новичок',tasks:['Собирать требования','Готовить простые модели','Тестировать макеты'],skills:['Чувство формы','Командная работа','Аккуратность'],hours:'5-8 часов',status:'Набор открыт',tags:['макеты','обучение','прототип']},
-{id:5,title:'Проектирование сувенирной продукции',shortDescription:'Серия фирменных сувениров для мероприятий технопарка.',fullDescription:'Создание небольших практичных объектов с айдентикой РГСУ.',direction:'3D-моделирование',level:'Новичок',tasks:['Создавать концепции','Готовить модели под печать','Оформлять рендеры'],skills:['3D-моделирование','Насмотренность','Работа с брендом'],hours:'5-8 часов',status:'Осталось мало мест',tags:['сувениры','моделирование','бренд']},
-{id:6,title:'Разработка интерфейсов для проектов технопарка',shortDescription:'Создание UI для внутренних цифровых инструментов.',fullDescription:'Дизайн и верстка MVP-сервисов для кураторов и студентов.',direction:'Веб-интерфейсы',level:'Технопарковец',tasks:['Проектировать экраны','Верстать блоки','Проводить UX-проверки'],skills:['HTML/CSS/JS','UX-паттерны','Визуальная иерархия'],hours:'9-12 часов',status:'Идет работа',tags:['ui','ux','html']},
-{id:7,title:'Подготовка карточек проектов и визуальных материалов',shortDescription:'Оформление карточек проектов для презентаций и витрин.',fullDescription:'Создание понятных визуальных материалов для коммуникаций лаборатории.',direction:'Контент и визуальные материалы',level:'Новичок',tasks:['Оформлять карточки','Готовить иллюстрации','Согласовывать материалы'],skills:['Графика','Структурирование','Аккуратность'],hours:'2-4 часа',status:'Набор открыт',tags:['графика','карточки','презентация']},
-{id:8,title:'Помощь в выставках и мастер-классах',shortDescription:'Организация пространства и сопровождение активностей.',fullDescription:'Поддержка команды в подготовке площадки и сопровождении мероприятий.',direction:'Организационная помощь',level:'Новичок',tasks:['Готовить площадку','Сопровождать материалы','Помогать участникам'],skills:['Коммуникация','Ответственность','Организованность'],hours:'2-4 часа',status:'Набор открыт',tags:['мероприятия','помощь','практика']},
-{id:9,title:'Подготовка описаний и инструкций',shortDescription:'Документация по оборудованию и процессам лаборатории.',fullDescription:'Создание понятных инструкций и регламентов для новых практикантов.',direction:'Документация',level:'Новичок',tasks:['Собирать информацию','Писать инструкции','Актуализировать документы'],skills:['Грамотность','Структура текста','Внимательность'],hours:'2-4 часа',status:'Набор открыт',tags:['тексты','инструкции','документы']},
-{id:10,title:'Разработка полезных изделий и аксессуаров',shortDescription:'Функциональные объекты для ежедневного использования.',fullDescription:'Проектирование практичных изделий для задач лаборатории.',direction:'Промышленный дизайн',level:'Технопарковец',tasks:['Формулировать требования','Разрабатывать модели','Тестировать прототипы'],skills:['Инженерное мышление','3D-моделирование','Прототипирование'],hours:'5-8 часов',status:'Набор открыт',tags:['изделия','продукт','проектирование']},
+{id:5,title:'Проектирование сувенирной продукции',shortDescription:'Серия фирменных сувениров для мероприятий технопарка.',fullDescription:'Создание практичных объектов с айдентикой РГСУ.',direction:'3D-моделирование',level:'Новичок',tasks:['Создавать концепции','Готовить модели под печать','Оформлять рендеры'],skills:['3D-моделирование','Насмотренность','Работа с брендом'],hours:'5-8 часов',status:'Осталось мало мест',tags:['сувениры','моделирование','бренд']},
+{id:6,title:'Разработка интерфейсов для проектов технопарка',shortDescription:'Создание UI для внутренних цифровых инструментов.',fullDescription:'Дизайн и верстка MVP-сервисов.',direction:'Веб-интерфейсы',level:'Технопарковец',tasks:['Проектировать экраны','Верстать блоки','Проводить UX-проверки'],skills:['HTML/CSS/JS','UX-паттерны','Визуальная иерархия'],hours:'9-12 часов',status:'Идет работа',tags:['ui','ux','html']},
+{id:7,title:'Подготовка карточек проектов и визуальных материалов',shortDescription:'Оформление карточек проектов для презентаций и витрин.',fullDescription:'Создание визуальных материалов для коммуникаций лаборатории.',direction:'Контент и визуальные материалы',level:'Новичок',tasks:['Оформлять карточки','Готовить иллюстрации','Согласовывать материалы'],skills:['Графика','Структурирование','Аккуратность'],hours:'2-4 часа',status:'Набор открыт',tags:['графика','карточки','презентация']},
+{id:8,title:'Помощь в выставках и мастер-классах',shortDescription:'Организация пространства и сопровождение активностей.',fullDescription:'Поддержка команды на мероприятиях.',direction:'Организационная помощь',level:'Новичок',tasks:['Готовить площадку','Сопровождать материалы','Помогать участникам'],skills:['Коммуникация','Ответственность','Организованность'],hours:'2-4 часа',status:'Набор открыт',tags:['мероприятия','помощь','практика']},
+{id:9,title:'Подготовка описаний и инструкций',shortDescription:'Документация по оборудованию и процессам лаборатории.',fullDescription:'Создание понятных инструкций и регламентов.',direction:'Документация',level:'Новичок',tasks:['Собирать информацию','Писать инструкции','Актуализировать документы'],skills:['Грамотность','Структура текста','Внимательность'],hours:'2-4 часа',status:'Набор открыт',tags:['тексты','инструкции','документы']},
+{id:10,title:'Разработка полезных изделий и аксессуаров',shortDescription:'Функциональные объекты для ежедневного использования.',fullDescription:'Проектирование практичных изделий.',direction:'Промышленный дизайн',level:'Технопарковец',tasks:['Формулировать требования','Разрабатывать модели','Тестировать прототипы'],skills:['Инженерное мышление','3D-моделирование','Прототипирование'],hours:'5-8 часов',status:'Набор открыт',tags:['изделия','продукт','проектирование']},
 {id:11,title:'Подготовка цифровых моделей для реверсивного инжиниринга',shortDescription:'Точные цифровые заготовки для анализа деталей.',fullDescription:'Работа с измерениями и моделями для инженерной команды.',direction:'Реверсивный инжиниринг',level:'Технопарковец',tasks:['Сравнивать сканы','Готовить CAD-модели','Фиксировать отклонения'],skills:['CAD','Понимание допусков','Техническая аккуратность'],hours:'9-12 часов',status:'Требуются сильные участники',tags:['cad','reverse','анализ']},
-{id:12,title:'Сборка, упаковка и подготовка изделий',shortDescription:'Поддержка финальной стадии: сборка и логистика результатов.',fullDescription:'Быстрый вход в процессы лаборатории через понятные операционные задачи.',direction:'Организационная помощь',level:'Новичок',tasks:['Собирать изделия','Контролировать комплектность','Подготавливать упаковку'],skills:['Аккуратность','Исполнительность','Регламенты'],hours:'2-4 часа',status:'Идет работа',tags:['сборка','упаковка','логистика']},
-{id:13,title:'Создание контента о проектах технопарка',shortDescription:'Фото, тексты и короткие материалы о работе лаборатории.',fullDescription:'Формирование контент-потока о ходе проектов и результатах.',direction:'Контент и визуальные материалы',level:'Новичок',tasks:['Собирать фактуру','Готовить материалы','Публиковать по плану'],skills:['Фото/редактура','Копирайтинг','Коммуникация'],hours:'5-8 часов',status:'Набор открыт',tags:['контент','фото','описание']},
-{id:14,title:'Поддержка сайтов и цифровых витрин проектов',shortDescription:'Обновление разделов, карточек и структуры цифровых витрин.',fullDescription:'Поддержка веб-витрин проектов: контент, верстка, навигация.',direction:'Веб-интерфейсы',level:'Технопарковец',tasks:['Обновлять контент','Исправлять верстку','Улучшать путь пользователя'],skills:['HTML/CSS','Базовый JS','Ответственность'],hours:'5-8 часов',status:'Осталось мало мест',tags:['сайт','витрина','интерфейс']}
+{id:12,title:'Сборка, упаковка и подготовка изделий',shortDescription:'Поддержка финальной стадии: сборка и логистика результатов.',fullDescription:'Быстрый вход в процессы через операционные задачи.',direction:'Организационная помощь',level:'Новичок',tasks:['Собирать изделия','Контролировать комплектность','Подготавливать упаковку'],skills:['Аккуратность','Исполнительность','Регламенты'],hours:'2-4 часа',status:'Идет работа',tags:['сборка','упаковка','логистика']},
+{id:13,title:'Создание контента о проектах технопарка',shortDescription:'Фото, тексты и короткие материалы о работе лаборатории.',fullDescription:'Формирование контент-потока о ходе проектов.',direction:'Контент и визуальные материалы',level:'Новичок',tasks:['Собирать фактуру','Готовить материалы','Публиковать по плану'],skills:['Фото/редактура','Копирайтинг','Коммуникация'],hours:'5-8 часов',status:'Набор открыт',tags:['контент','фото','описание']},
+{id:14,title:'Поддержка сайтов и цифровых витрин проектов',shortDescription:'Обновление разделов, карточек и структуры цифровых витрин.',fullDescription:'Поддержка веб-витрин: контент, верстка, навигация.',direction:'Веб-интерфейсы',level:'Технопарковец',tasks:['Обновлять контент','Исправлять верстку','Улучшать путь пользователя'],skills:['HTML/CSS','Базовый JS','Ответственность'],hours:'5-8 часов',status:'Осталось мало мест',tags:['сайт','витрина','интерфейс']}
 ];
 
 // 2. Глобальное состояние
-const state={view:'table',profile:{userId:'',level:'Новичок',direction:'Любое направление',hours:'2-4 часа'},filters:{search:'',direction:'Все',level:'Все',status:'Все',sort:'По названию',openOnly:false,hideApplied:false},interests:{},applications:[],recent:[],currentProject:null,compare:[]};
+const state={view:'table',profile:{userId:'',level:'Новичок',direction:'Любое направление',energy:'question'},filters:{search:'',direction:'Все',level:'Все',status:'Все',sort:'По названию',openOnly:false},interests:{},applications:[],priorityOrder:[],currentProject:null};
 
 // 3. Константы localStorage
-const LS={profile:'tp_profile',view:'tp_view',filters:'tp_filters',interests:'tp_interests',applications:'tp_apps',recent:'tp_recent',compare:'tp_compare',savedAt:'tp_saved_at'};
+const LS={profile:'tp_profile',view:'tp_view',filters:'tp_filters',interests:'tp_interests',applications:'tp_apps',priority:'tp_priority'};
+const TECHPARK_EMAIL='techpark.rgsu@rgsu.net';
 
 // 4. Утилиты
 const $=id=>document.getElementById(id); const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const hoursRank={'2-4 часа':1,'5-8 часов':2,'9-12 часов':3,'12+ часов':4}; const interestLabel={skipped:'Пропущено',interested:'Интересно',strong:'Очень подходит'};
+const energyMeta={ninja:{emoji:'🥷',title:'Ниндзя в маске',desc:'Сделаю несколько трудовых подвигов, но есть и свои дела.',value:2},zdun:{emoji:'🦥',title:'Ждун',desc:'Ходить буду, но большой пользы не ждите — я ленивый.',value:1},question:{emoji:'❓',title:'Знак вопроса',desc:'Пока не знаю, но настрой боевой.',value:2},star:{emoji:'⭐',title:'Звезда',desc:'Проверим, на что мы способны!',value:4}};
 
 // 5. Работа с localStorage
-function save(){localStorage.setItem(LS.profile,JSON.stringify(state.profile));localStorage.setItem(LS.view,state.view);localStorage.setItem(LS.filters,JSON.stringify(state.filters));localStorage.setItem(LS.interests,JSON.stringify(state.interests));localStorage.setItem(LS.applications,JSON.stringify(state.applications));localStorage.setItem(LS.recent,JSON.stringify(state.recent));localStorage.setItem(LS.compare,JSON.stringify(state.compare));}
-function load(){try{Object.assign(state.profile,JSON.parse(localStorage.getItem(LS.profile)||'{}'));state.view=localStorage.getItem(LS.view)||state.view;Object.assign(state.filters,JSON.parse(localStorage.getItem(LS.filters)||'{}'));state.interests=JSON.parse(localStorage.getItem(LS.interests)||'{}');state.applications=JSON.parse(localStorage.getItem(LS.applications)||'[]');state.recent=JSON.parse(localStorage.getItem(LS.recent)||'[]');state.compare=JSON.parse(localStorage.getItem(LS.compare)||'[]');}catch(e){}}
+function save(){localStorage.setItem(LS.profile,JSON.stringify(state.profile));localStorage.setItem(LS.view,state.view);localStorage.setItem(LS.filters,JSON.stringify(state.filters));localStorage.setItem(LS.interests,JSON.stringify(state.interests));localStorage.setItem(LS.applications,JSON.stringify(state.applications));localStorage.setItem(LS.priority,JSON.stringify(state.priorityOrder));}
+function load(){try{Object.assign(state.profile,JSON.parse(localStorage.getItem(LS.profile)||'{}'));state.view=localStorage.getItem(LS.view)||state.view;Object.assign(state.filters,JSON.parse(localStorage.getItem(LS.filters)||'{}'));state.interests=JSON.parse(localStorage.getItem(LS.interests)||'{}');state.applications=JSON.parse(localStorage.getItem(LS.applications)||'[]');state.priorityOrder=JSON.parse(localStorage.getItem(LS.priority)||'[]')}catch(e){}}
 
 // 6. Логика рекомендаций
-function score(p){let s=0;if(state.profile.direction!=='Любое направление'&&state.profile.direction===p.direction)s+=3;if(state.profile.level===p.level)s+=2;if(hoursRank[state.profile.hours]>=hoursRank[p.hours])s+=2;
-const newbie=['Документация','Организационная помощь','Контент и визуальные материалы'];const newbieTitle=['Подготовка моделей для 3D-печати'];const expert=['Реверсивный инжиниринг','3D-сканирование','Веб-интерфейсы','Промышленный дизайн'];
-if(state.profile.level==='Новичок'){if(newbie.includes(p.direction))s+=2;if(newbieTitle.includes(p.title))s+=1}else{if(expert.includes(p.direction))s+=2;if(p.status==='Требуются сильные участники')s+=1}return s}
+function requiredEnergy(project){return project.hours==='9-12 часов'?3:project.hours==='5-8 часов'?2:1}
+function score(p){let s=0;if(state.profile.direction!=='Любое направление'&&state.profile.direction===p.direction)s+=3;if(state.profile.level===p.level)s+=2;if((energyMeta[state.profile.energy]?.value||2)>=requiredEnergy(p))s+=2;const n=['Документация','Организационная помощь','Контент и визуальные материалы'];const e=['Реверсивный инжиниринг','3D-сканирование','Веб-интерфейсы','Промышленный дизайн'];if(state.profile.level==='Новичок'&&n.includes(p.direction))s+=2;if(state.profile.level==='Технопарковец'&&e.includes(p.direction))s+=2;return s}
 const recommended=p=>score(p)>=6;
 
 // 7. Фильтрация и сортировка
-function visibleProjects(){let list=projects.filter(p=>{
- if(state.filters.search&&!p.title.toLowerCase().includes(state.filters.search.toLowerCase()))return false;
- if(state.filters.direction!=='Все'&&p.direction!==state.filters.direction)return false;
- if(state.filters.level!=='Все'&&p.level!==state.filters.level)return false;
- if(state.filters.status!=='Все'&&p.status!==state.filters.status)return false;
- if(state.filters.openOnly&&p.status!=='Набор открыт'&&p.status!=='Осталось мало мест')return false;
- if(state.filters.hideApplied&&state.applications.some(a=>a.projectId===p.id))return false;
- return true;
-});
-list.sort((a,b)=>{if(state.filters.sort==='По часам')return hoursRank[a.hours]-hoursRank[b.hours]||a.title.localeCompare(b.title,'ru');if(state.filters.sort==='По уровню')return a.level.localeCompare(b.level,'ru')||a.title.localeCompare(b.title,'ru');if(state.filters.sort==='Сначала рекомендуемые')return Number(recommended(b))-Number(recommended(a))||a.title.localeCompare(b.title,'ru');return a.title.localeCompare(b.title,'ru')});
-return list;}
+function visibleProjects(){let list=projects.filter(p=>{if(state.filters.search&&!p.title.toLowerCase().includes(state.filters.search.toLowerCase()))return false;if(state.filters.direction!=='Все'&&p.direction!==state.filters.direction)return false;if(state.filters.level!=='Все'&&p.level!==state.filters.level)return false;if(state.filters.status!=='Все'&&p.status!==state.filters.status)return false;if(state.filters.openOnly&&p.status!=='Набор открыт'&&p.status!=='Осталось мало мест')return false;return true});list.sort((a,b)=>{if(state.filters.sort==='По уровню')return a.level.localeCompare(b.level,'ru')||a.title.localeCompare(b.title,'ru');if(state.filters.sort==='Сначала рекомендуемые')return Number(recommended(b))-Number(recommended(a))||a.title.localeCompare(b.title,'ru');return a.title.localeCompare(b.title,'ru')});return list}
 
 // 8. Рендер таблицы
-function highlight(title){const q=state.filters.search.trim();if(!q)return esc(title);const i=title.toLowerCase().indexOf(q.toLowerCase());if(i<0)return esc(title);return `${esc(title.slice(0,i))}<mark>${esc(title.slice(i,i+q.length))}</mark>${esc(title.slice(i+q.length))}`;}
-function renderTable(items){$('tableBody').innerHTML=items.map(p=>`<tr><td data-label="Проект"><div class="project-title">${highlight(p.title)}</div><div class="project-desc">${esc(p.shortDescription)}</div><div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></td><td data-label="Направление">${esc(p.direction)}</td><td data-label="Уровень">${esc(p.level)}</td><td data-label="Часы">${esc(p.hours)}</td><td data-label="Статус"><span class="badge status-${esc(p.status)}">${esc(p.status)}</span></td><td data-label="Рекомендуется">${recommended(p)?'<span class="badge recommend">Рекомендуется</span>':'—'}</td><td data-label="Действие"><div class="table-actions"><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm" onclick="toggleCompare(${p.id})" type="button">Сравнить</button><button class="btn btn-sm btn-primary" onclick="openApply(${p.id})" type="button">Подать заявку</button></div></td></tr>`).join('');}
+function renderTable(items){$('tableBody').innerHTML=items.map(p=>`<tr><td data-label="Проект"><div class="project-title">${esc(p.title)}</div><div class="project-desc">${esc(p.shortDescription)}</div><div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></td><td data-label="Направление">${esc(p.direction)}</td><td data-label="Уровень">${esc(p.level)}</td><td data-label="Статус"><span class="badge status-${esc(p.status)}">${esc(p.status)}</span></td><td data-label="Рекомендуется">${recommended(p)?'<span class="badge recommend">Рекомендуется</span>':'—'}</td><td data-label="Действие"><div class="table-actions"><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm" onclick="setInterest(${p.id},'interested')" type="button">Интересно</button><button class="btn btn-sm btn-primary" onclick="openApply(${p.id})" type="button">Подать заявку</button></div></td></tr>`).join('')}
 
 // 9. Рендер карточек
-function renderCards(items){$('cardsView').innerHTML=items.map(p=>{const s=score(p);const ratio=Math.min(100,Math.round((s/10)*100));return `<article class="card project-card"><div style="display:flex;justify-content:space-between;gap:8px"><h3 style="margin:0;font-size:1rem">${esc(p.title)}</h3>${recommended(p)?'<span class="badge recommend">Рекомендуется</span>':''}</div><p class="muted" style="margin:7px 0">${esc(p.shortDescription)}</p><div class="match" aria-label="Уровень соответствия"><span style="width:${ratio}%"></span></div><div class="muted" style="font-size:.8rem;margin-top:4px">Совпадение: ${ratio}%</div><ul class="tasks">${p.tasks.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ul><div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="tags" style="margin-top:8px"><span class="tag">${esc(p.level)}</span><span class="tag">${esc(p.hours)}</span><span class="badge status-${esc(p.status)}">${esc(p.status)}</span></div><div class="card-actions"><button class="btn btn-sm" onclick="setInterest(${p.id},'skipped')" type="button">Пропустить</button><button class="btn btn-sm" onclick="setInterest(${p.id},'interested')" type="button">Интересно</button><button class="btn btn-sm" onclick="setInterest(${p.id},'strong')" type="button">Очень подходит</button><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm" onclick="toggleCompare(${p.id})" type="button">Сравнить</button><button class="btn btn-sm btn-primary" onclick="openApply(${p.id})" type="button">Подать заявку</button></div></article>`}).join('');}
+function renderCards(items){$('cardsView').innerHTML=items.map(p=>`<article class="card project-card"><div style="display:flex;justify-content:space-between;gap:8px"><h3 style="margin:0;font-size:1rem">${esc(p.title)}</h3>${recommended(p)?'<span class="badge recommend">Рекомендуется</span>':''}</div><p class="muted" style="margin:7px 0">${esc(p.shortDescription)}</p><ul class="tasks">${p.tasks.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ul><div class="tags">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="row" style="margin-top:10px"><button class="btn btn-sm" onclick="setInterest(${p.id},'skipped')" type="button">Пропустить</button><button class="btn btn-sm" onclick="setInterest(${p.id},'interested')" type="button">Интересно</button><button class="btn btn-sm" onclick="setInterest(${p.id},'strong')" type="button">Очень подходит</button><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm btn-primary" onclick="openApply(${p.id})" type="button">Подать заявку</button></div></article>`).join('')}
 
 // 10. Рендер блока "Мои выборы"
-function renderChoices(){const byId=Object.fromEntries(projects.map(p=>[p.id,p]));const chosen=[];Object.entries(state.interests).forEach(([id,v])=>{if(v==='interested'||v==='strong'){const p=byId[+id];if(p)chosen.push({p,interest:v,applied:state.applications.some(a=>a.projectId===p.id)})}});state.applications.forEach(a=>{if(!chosen.find(c=>c.p.id===a.projectId)&&byId[a.projectId])chosen.push({p:byId[a.projectId],interest:'interested',applied:true})});
-$('choicesEmpty').classList.toggle('hidden',chosen.length>0);$('choices').innerHTML=chosen.map(i=>`<article class="choice"><div><div class="project-title">${esc(i.p.title)}</div><div class="muted">${interestLabel[i.interest]} ${i.applied?'• Заявка отправлена':''}</div><div class="tags" style="margin-top:6px"><span class="tag">${esc(i.p.hours)}</span><span class="tag">${esc(i.p.direction)}</span></div></div><div class="choice-actions"><button class="btn btn-sm" onclick="removeChoice(${i.p.id})" type="button">Удалить</button><button class="btn btn-sm" onclick="openProject(${i.p.id})" type="button">Подробнее</button></div></article>`).join('');}
+function orderedChosen(){const ids=Object.entries(state.interests).filter(([,v])=>v==='interested'||v==='strong').map(([id])=>Number(id));const merged=[...state.priorityOrder.filter(id=>ids.includes(id)),...ids.filter(id=>!state.priorityOrder.includes(id))];state.priorityOrder=merged;return merged.map(id=>projects.find(p=>p.id===id)).filter(Boolean)}
+function renderChoices(){const chosen=orderedChosen();$('choicesEmpty').classList.toggle('hidden',chosen.length>0);$('choices').innerHTML=chosen.map((p,idx)=>`<article class="choice"><div><div class="row" style="align-items:center"><span class="priority">${idx+1}</span><div class="project-title">${esc(p.title)}</div></div><div class="muted">${esc(state.interests[p.id]==='strong'?'Очень подходит':'Интересно')} ${state.applications.some(a=>a.projectId===p.id)?'• Заявка отправлена':''}</div><div class="tags" style="margin-top:6px"><span class="tag">${esc(p.direction)}</span><span class="tag">${esc(p.level)}</span></div></div><div class="choice-actions"><button class="btn btn-sm" onclick="movePriority(${p.id},-1)" type="button" ${idx===0?'disabled':''}>↑</button><button class="btn btn-sm" onclick="movePriority(${p.id},1)" type="button" ${idx===chosen.length-1?'disabled':''}>↓</button><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm" onclick="removeChoice(${p.id})" type="button">Удалить</button></div></article>`).join('')}
 
 // 11. Модалки
-function openOverlay(el){el.classList.add('open');el.setAttribute('aria-hidden','false')} function closeOverlay(el){el.classList.remove('open');el.setAttribute('aria-hidden','true')}
-function openProject(id){const p=projects.find(x=>x.id===id);if(!p)return;state.currentProject=id;state.recent=[id,...state.recent.filter(v=>v!==id)].slice(0,8);save();
-$('projectTitle').textContent=p.title;$('projectBody').innerHTML=`<p class="muted">${esc(p.fullDescription)}</p><h4>Задачи участника</h4><ul>${p.tasks.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><h4>Навыки</h4><ul>${p.skills.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><div class="tags" style="margin-top:8px"><span class="tag">Уровень: ${esc(p.level)}</span><span class="tag">Загрузка: ${esc(p.hours)}</span><span class="badge status-${esc(p.status)}">${esc(p.status)}</span></div>`;openOverlay($('projectOverlay'));renderRecent();}
-function openApply(id){const p=projects.find(x=>x.id===id);if(!p)return;state.currentProject=id;$('aProject').value=p.title;$('aPerson').value=state.profile.userId||'';$('aHours').value=state.profile.hours||'2-4 часа';$('aComment').value='';openOverlay($('applyOverlay'));}
-function openCompare(){const ids=state.compare;const rows=ids.map(id=>projects.find(p=>p.id===id)).filter(Boolean);if(!rows.length){toast('Выберите проекты для сравнения');return}$('compareBody').innerHTML=`<div style="display:grid;grid-template-columns:repeat(${rows.length},minmax(0,1fr));gap:8px">${rows.map(p=>`<div class="card" style="padding:10px"><b>${esc(p.title)}</b><div class="muted" style="margin:6px 0">${esc(p.shortDescription)}</div><div class="tags"><span class="tag">${esc(p.direction)}</span><span class="tag">${esc(p.level)}</span><span class="tag">${esc(p.hours)}</span></div></div>`).join('')}</div>`;openOverlay($('compareOverlay'));}
+function openOverlay(el){el.classList.add('open');el.setAttribute('aria-hidden','false')}function closeOverlay(el){el.classList.remove('open');el.setAttribute('aria-hidden','true')}
+function openProject(id){const p=projects.find(x=>x.id===id);if(!p)return;state.currentProject=id;$('projectTitle').textContent=p.title;$('projectBody').innerHTML=`<p class="muted">${esc(p.fullDescription)}</p><h4>Задачи участника</h4><ul>${p.tasks.map(t=>`<li>${esc(t)}</li>`).join('')}</ul><h4>Навыки, которые пригодятся</h4><ul>${p.skills.map(s=>`<li>${esc(s)}</li>`).join('')}</ul><div class="tags" style="margin-top:8px"><span class="tag">${esc(p.level)}</span><span class="tag">${esc(p.hours)}</span><span class="badge status-${esc(p.status)}">${esc(p.status)}</span></div>`;openOverlay($('projectOverlay'))}
+function openApply(id){const p=projects.find(x=>x.id===id);if(!p)return;state.currentProject=id;$('aProject').value=p.title;$('aPerson').value=state.profile.userId||'';$('aComment').value='';openOverlay($('applyOverlay'))}
 
 // 12. Toast
-let undoPayload=null;
-function toast(msg,withUndo=false){const t=document.createElement('div');t.className='toast';t.innerHTML=`<span>${esc(msg)}</span>${withUndo?'<button type="button">Отменить</button>':''}`;if(withUndo){t.querySelector('button').onclick=()=>{if(undoPayload){state.interests[undoPayload.id]=undoPayload.interest;if(undoPayload.app)state.applications.push(undoPayload.app);save();renderAll();toast('Удаление отменено');undoPayload=null;}t.remove();};}
-$('toasts').appendChild(t);setTimeout(()=>t.remove(),2600)}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;$('toasts').appendChild(t);setTimeout(()=>t.remove(),2200)}
 
 // 13. Обработчики событий
-function setInterest(id,val){state.interests[id]=val;save();renderAll();toast('Выбор сохранен')}
-function removeChoice(id){undoPayload={id,interest:state.interests[id],app:state.applications.find(a=>a.projectId===id)||null};delete state.interests[id];state.applications=state.applications.filter(a=>a.projectId!==id);save();renderAll();toast('Выбор удален',true)}
-function toggleCompare(id){if(state.compare.includes(id)){state.compare=state.compare.filter(v=>v!==id)}else{if(state.compare.length>=3){toast('Можно сравнить максимум 3 проекта');return;}state.compare.push(id)}save();renderLiveKpis();}
+function setInterest(id,val){state.interests[id]=val;if(!state.priorityOrder.includes(id)&&(val==='interested'||val==='strong'))state.priorityOrder.push(id);save();renderAll();toast('Выбор сохранен')}
+function removeChoice(id){delete state.interests[id];state.applications=state.applications.filter(a=>a.projectId!==id);state.priorityOrder=state.priorityOrder.filter(v=>v!==id);save();renderAll();toast('Выбор удален')}
+function movePriority(id,dir){const i=state.priorityOrder.indexOf(id);if(i<0)return;const j=i+dir;if(j<0||j>=state.priorityOrder.length)return;[state.priorityOrder[i],state.priorityOrder[j]]=[state.priorityOrder[j],state.priorityOrder[i]];save();renderChoices()}
+
+function renderEnergy(){const keys=Object.keys(energyMeta);$('energyCards').innerHTML=keys.map(k=>`<button class="energy-card ${state.profile.energy===k?'active':''}" type="button" data-energy="${k}"><span class="emoji">${energyMeta[k].emoji}</span><b>${energyMeta[k].title}</b><small>${energyMeta[k].desc}</small></button>`).join('');$('energyFill').style.width=((keys.indexOf(state.profile.energy)+1)/keys.length*100)+'%'}
 
 function bind(){
- $('viewTable').onclick=()=>{state.view='table';save();renderAll()};$('viewCards').onclick=()=>{state.view='cards';save();renderAll()};$('goChoices').onclick=()=>$('myChoicesSection').scrollIntoView({behavior:'smooth'});
- $('saveProfile').onclick=()=>{state.profile={userId:$('profileId').value.trim(),level:$('profileLevel').value,direction:$('profileDirection').value,hours:$('profileHours').value};localStorage.setItem(LS.savedAt,new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}));save();renderAll();toast('Профиль сохранен')};
- $('clearProfile').onclick=()=>{state.profile={userId:'',level:'Новичок',direction:'Любое направление',hours:'2-4 часа'};save();syncForms();renderAll();toast('Данные очищены')};
- $('search').oninput=e=>{state.filters.search=e.target.value;save();renderAll()};
- [['directionFilter','direction'],['levelFilter','level'],['statusFilter','status'],['sortFilter','sort']].forEach(([id,key])=>$(id).onchange=e=>{state.filters[key]=e.target.value;save();renderAll()});
- $('openOnly').onchange=e=>{state.filters.openOnly=e.target.checked;save();renderAll()};$('hideApplied').onchange=e=>{state.filters.hideApplied=e.target.checked;save();renderAll()};
- $('resetFilters').onclick=()=>{state.filters={search:'',direction:'Все',level:'Все',status:'Все',sort:'По названию',openOnly:false,hideApplied:false};save();syncForms();renderAll();toast('Фильтры сброшены')};
- $('showRecommended').onclick=()=>{state.filters.sort='Сначала рекомендуемые';save();syncForms();renderAll();$('projectsSection').scrollIntoView({behavior:'smooth'})};
- $('openHelp').onclick=()=>openOverlay($('helpOverlay')); $('closeHelp').onclick=()=>(closeOverlay($('helpOverlay'))); $('helpClose2').onclick=()=>(closeOverlay($('helpOverlay')));
- $('closeProject').onclick=()=>(closeOverlay($('projectOverlay')));$('mClose').onclick=()=>(closeOverlay($('projectOverlay')));$('closeApply').onclick=()=>(closeOverlay($('applyOverlay')));$('aClose').onclick=()=>(closeOverlay($('applyOverlay')));
- $('closeCompare').onclick=()=>(closeOverlay($('compareOverlay')));$('compareClose2').onclick=()=>(closeOverlay($('compareOverlay')));
- ['projectOverlay','applyOverlay','helpOverlay','compareOverlay'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target===$(id))closeOverlay($(id))}));
- $('mInterested').onclick=()=>state.currentProject&&setInterest(state.currentProject,'interested'); $('mStrong').onclick=()=>state.currentProject&&setInterest(state.currentProject,'strong'); $('mApply').onclick=()=>state.currentProject&&(closeOverlay($('projectOverlay')),openApply(state.currentProject));
- $('submitApply').onclick=()=>{if(!state.currentProject)return;const person=$('aPerson').value.trim();if(!person){$('aPerson').focus();return;}const rec={projectId:state.currentProject,person,hours:$('aHours').value,comment:$('aComment').value.trim(),createdAt:new Date().toISOString()};state.applications=state.applications.filter(a=>a.projectId!==rec.projectId);state.applications.push(rec);state.interests[rec.projectId]=state.interests[rec.projectId]||'interested';save();closeOverlay($('applyOverlay'));renderAll();toast('Заявка сохранена')};
- $('download').onclick=()=>{const blob=new Blob([JSON.stringify({profile:state.profile,selectedProjects:state.interests,applications:state.applications},null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='rgsu-techpark-choices.json';a.click();URL.revokeObjectURL(u)};
- $('toTop').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});window.addEventListener('scroll',()=>{$('toTop').style.display=window.scrollY>420?'grid':'none'});
- $('mobileApply').onclick=()=>{const first=visibleProjects()[0];if(first)openApply(first.id);else toast('Нет проектов для заявки в текущем фильтре')};
- $('quickFilters').addEventListener('click',e=>{const b=e.target.closest('button[data-qf]');if(!b)return;applyQuickFilter(b.dataset.qf)});
- document.addEventListener('keydown',onKey);
+  $('viewTable').onclick=()=>{state.view='table';save();renderAll()};$('viewCards').onclick=()=>{state.view='cards';save();renderAll()};$('goChoices').onclick=()=>$('myChoicesSection').scrollIntoView({behavior:'smooth'});
+  $('saveProfile').onclick=()=>{state.profile={userId:$('profileId').value.trim(),level:$('profileLevel').value,direction:$('profileDirection').value,energy:state.profile.energy};save();renderAll();toast('Профиль сохранен')};
+  $('clearProfile').onclick=()=>{state.profile={userId:'',level:'Новичок',direction:'Любое направление',energy:'question'};save();syncForms();renderAll();toast('Данные очищены')};
+  $('energyCards').addEventListener('click',e=>{const b=e.target.closest('[data-energy]');if(!b)return;state.profile.energy=b.dataset.energy;renderEnergy();save();renderAll()});
+  $('search').oninput=e=>{state.filters.search=e.target.value;save();renderAll()};[['directionFilter','direction'],['levelFilter','level'],['statusFilter','status'],['sortFilter','sort']].forEach(([id,key])=>$(id).onchange=e=>{state.filters[key]=e.target.value;save();renderAll()});
+  $('openOnly').onchange=e=>{state.filters.openOnly=e.target.checked;save();renderAll()};
+  $('quickFilters').addEventListener('click',e=>{const b=e.target.closest('[data-qf]');if(!b)return;document.querySelectorAll('.qf').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(b.dataset.qf==='recommended')state.filters.sort='Сначала рекомендуемые';if(b.dataset.qf==='newbie')state.filters.level='Новичок';if(b.dataset.qf==='expert')state.filters.level='Технопарковец';if(b.dataset.qf==='open')state.filters.status='Набор открыт';if(b.dataset.qf==='web')state.filters.direction='Веб-интерфейсы';save();syncForms();renderAll()});
+  $('resetFilters').onclick=()=>{state.filters={search:'',direction:'Все',level:'Все',status:'Все',sort:'По названию',openOnly:false};save();syncForms();renderAll();toast('Фильтры сброшены')};
+  $('closeProject').onclick=()=>(closeOverlay($('projectOverlay')));$('mClose').onclick=()=>(closeOverlay($('projectOverlay')));$('closeApply').onclick=()=>(closeOverlay($('applyOverlay')));$('aClose').onclick=()=>(closeOverlay($('applyOverlay')));
+  $('projectOverlay').addEventListener('click',e=>{if(e.target===$('projectOverlay'))closeOverlay($('projectOverlay'))});$('applyOverlay').addEventListener('click',e=>{if(e.target===$('applyOverlay'))closeOverlay($('applyOverlay'))});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeOverlay($('projectOverlay'));closeOverlay($('applyOverlay'))}});
+  $('mInterested').onclick=()=>state.currentProject&&setInterest(state.currentProject,'interested');$('mStrong').onclick=()=>state.currentProject&&setInterest(state.currentProject,'strong');$('mApply').onclick=()=>state.currentProject&&(closeOverlay($('projectOverlay')),openApply(state.currentProject));
+  $('submitApply').onclick=()=>{if(!state.currentProject)return;const person=$('aPerson').value.trim();if(!person){$('aPerson').focus();return;}const app={projectId:state.currentProject,person,comment:$('aComment').value.trim(),createdAt:new Date().toISOString()};state.applications=state.applications.filter(a=>a.projectId!==app.projectId);state.applications.push(app);state.interests[app.projectId]=state.interests[app.projectId]||'interested';if(!state.priorityOrder.includes(app.projectId))state.priorityOrder.push(app.projectId);save();closeOverlay($('applyOverlay'));renderAll();toast('Заявка сохранена')};
+  $('download').onclick=()=>{const blob=new Blob([JSON.stringify({profile:state.profile,priorityOrder:state.priorityOrder,selectedProjects:state.interests,applications:state.applications},null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='rgsu-techpark-choices.json';a.click();URL.revokeObjectURL(u)};
+  $('sendEmail').onclick=sendPriorityEmail;
 }
 
-function onKey(e){if(e.key==='Escape'){['projectOverlay','applyOverlay','helpOverlay','compareOverlay'].forEach(id=>closeOverlay($(id)));return}
- if(e.key==='?')openOverlay($('helpOverlay')); if(e.key==='t'){state.view='table';save();renderAll()} if(e.key==='c'){state.view='cards';save();renderAll()}
- keySeq=(keySeq+e.key.toLowerCase()).slice(-2); if(keySeq==='gp')$('projectsSection').scrollIntoView({behavior:'smooth'}); if(keySeq==='gm')$('myChoicesSection').scrollIntoView({behavior:'smooth'});
-}
-let keySeq='';
+function sendPriorityEmail(){const chosen=orderedChosen();if(!chosen.length){toast('Сначала добавьте проекты в Мои выборы');return;}const lines=chosen.map((p,i)=>`${i+1}. ${p.title} (${p.direction}, ${p.level})`);const body=[`Участник: ${state.profile.userId||'не указан'}`,`Уровень: ${state.profile.level}`,`Направление интереса: ${state.profile.direction}`,`Настрой: ${energyMeta[state.profile.energy].title}`,'','Приоритеты проектов:','',...lines,'','Комментарий: заявка сформирована из MVP-сайта.'].join('\n');const subj='Заявка практиканта — приоритеты проектов';window.location.href=`mailto:${encodeURIComponent(TECHPARK_EMAIL)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;toast('Открылся почтовый клиент для отправки заявки')}
 
-function applyQuickFilter(kind){document.querySelectorAll('.qf').forEach(x=>x.classList.remove('active'));
- const map={recommended:()=>{state.filters.sort='Сначала рекомендуемые';},newbie:()=>{state.filters.level='Новичок';},expert:()=>{state.filters.level='Технопарковец';},open:()=>{state.filters.status='Набор открыт';},web:()=>{state.filters.direction='Веб-интерфейсы';}};
- map[kind]?.();save();syncForms();renderAll();const btn=document.querySelector(`.qf[data-qf="${kind}"]`);if(btn)btn.classList.add('active')}
-
-function renderRecent(){const list=state.recent.map(id=>projects.find(p=>p.id===id)).filter(Boolean);$('recentEmpty').classList.toggle('hidden',list.length>0);$('recentList').innerHTML=list.map(p=>`<article class="recent-item"><div class="project-title">${esc(p.title)}</div><div class="muted" style="font-size:.87rem;margin:4px 0">${esc(p.shortDescription)}</div><div class="row"><button class="btn btn-sm" onclick="openProject(${p.id})" type="button">Подробнее</button><button class="btn btn-sm btn-primary" onclick="openApply(${p.id})" type="button">Подать заявку</button></div></article>`).join('');}
-function renderLiveKpis(){const rec=projects.filter(recommended).length;const selected=Object.values(state.interests).filter(v=>v==='interested'||v==='strong').length;const applied=state.applications.length;$('liveKpis').innerHTML=`<span class="chip">Рекомендовано: ${rec}</span><span class="chip">Выбрано: ${selected}</span><span class="chip">Заявки: ${applied}</span><button class="chip" onclick="openCompare()" type="button">Сравнение: ${state.compare.length}/3</button>`;}
-function renderProfileProgress(){const filled=[state.profile.userId?1:0,state.profile.level?1:0,state.profile.direction&&state.profile.direction!=='Любое направление'?1:0,state.profile.hours?1:0].reduce((a,b)=>a+b,0);const pct=Math.round((filled/4)*100);$('profileProgressText').textContent=`Профиль заполнен на ${pct}%`; $('profileProgressBar').style.width=pct+'%'; $('savedAt').textContent=localStorage.getItem(LS.savedAt)?`Последнее сохранение: ${localStorage.getItem(LS.savedAt)}`:'';}
-
-function syncForms(){ $('profileId').value=state.profile.userId;$('profileLevel').value=state.profile.level;$('profileDirection').value=state.profile.direction;$('profileHours').value=state.profile.hours;
- $('search').value=state.filters.search;$('directionFilter').value=state.filters.direction;$('levelFilter').value=state.filters.level;$('statusFilter').value=state.filters.status;$('sortFilter').value=state.filters.sort;$('openOnly').checked=!!state.filters.openOnly;$('hideApplied').checked=!!state.filters.hideApplied; }
-function renderAll(){ $('viewTable').classList.toggle('active',state.view==='table');$('viewCards').classList.toggle('active',state.view==='cards');$('tableView').classList.toggle('hidden',state.view!=='table');$('cardsView').style.display=state.view==='cards'?'grid':'none';
- const items=visibleProjects();$('projectsCount').textContent=`Найдено проектов: ${items.length}`;$('projectsEmpty').classList.toggle('hidden',items.length>0);renderTable(items);renderCards(items);renderChoices();renderRecent();renderLiveKpis();renderProfileProgress(); }
+function syncForms(){$('profileId').value=state.profile.userId;$('profileLevel').value=state.profile.level;$('profileDirection').value=state.profile.direction;$('search').value=state.filters.search;$('directionFilter').value=state.filters.direction;$('levelFilter').value=state.filters.level;$('statusFilter').value=state.filters.status;$('sortFilter').value=state.filters.sort;$('openOnly').checked=!!state.filters.openOnly;renderEnergy()}
+function renderAll(){const items=visibleProjects();$('projectsCount').textContent=`Найдено проектов: ${items.length}`;$('projectsEmpty').classList.toggle('hidden',items.length>0);$('viewTable').classList.toggle('active',state.view==='table');$('viewCards').classList.toggle('active',state.view==='cards');$('tableView').classList.toggle('hidden',state.view!=='table');$('cardsView').style.display=state.view==='cards'?'grid':'none';renderTable(items);renderCards(items);renderChoices()}
 
 // 14. Инициализация
-function init(){load();$('directionFilter').innerHTML=['Все',...new Set(projects.map(p=>p.direction))].map(d=>`<option>${esc(d)}</option>`).join('');
- $('quickFilters').innerHTML=`<button class="qf" data-qf="recommended" type="button">Сначала рекомендуемые</button><button class="qf" data-qf="newbie" type="button">Только Новичок</button><button class="qf" data-qf="expert" type="button">Только Технопарковец</button><button class="qf" data-qf="open" type="button">Набор открыт</button><button class="qf" data-qf="web" type="button">Веб-интерфейсы</button>`;
- syncForms();bind();renderAll();}
+function init(){load();$('directionFilter').innerHTML=['Все',...new Set(projects.map(p=>p.direction))].map(d=>`<option>${esc(d)}</option>`).join('');$('quickFilters').innerHTML='<button class="qf" data-qf="recommended" type="button">Сначала рекомендуемые</button><button class="qf" data-qf="newbie" type="button">Только Новичок</button><button class="qf" data-qf="expert" type="button">Только Технопарковец</button><button class="qf" data-qf="open" type="button">Набор открыт</button><button class="qf" data-qf="web" type="button">Веб-интерфейсы</button>';syncForms();bind();renderAll()}
 
-window.openProject=openProject;window.openApply=openApply;window.setInterest=setInterest;window.removeChoice=removeChoice;window.toggleCompare=toggleCompare;window.openCompare=openCompare;
+window.openProject=openProject;window.openApply=openApply;window.setInterest=setInterest;window.removeChoice=removeChoice;window.movePriority=movePriority;
 init();
 </script>
 </body>
