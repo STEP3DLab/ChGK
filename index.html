@@ -177,6 +177,23 @@
       gap: 10px;
     }
 
+    .hero-quick-links {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-link {
+      border: 1px solid #d8e3ff;
+      background: #f4f7ff;
+      color: #2149b5;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: .84rem;
+      text-decoration: none;
+    }
+
     .hero-steps {
       margin: 0;
       padding-left: 18px;
@@ -404,6 +421,86 @@
 
     .status-line.error { color: #b42318; }
 
+    .top-progress {
+      margin: 12px 0 0;
+      border: 1px solid #dce6ff;
+      border-radius: 12px;
+      background: #f7f9ff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #dde6ff;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #1f64ff, #4f83ff);
+      transition: width .25s ease;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .insight {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      font-size: .88rem;
+      color: #3d4760;
+    }
+
+    .check-list {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 4px;
+      color: #405071;
+      font-size: .9rem;
+    }
+
+    .check-list li.ok { color: #116e39; }
+
+    .profile-meter {
+      margin-top: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .small-muted {
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+
+    .filters-extra {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .inline-control {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: .9rem;
+    }
+
+    .inline-control input[type="checkbox"] {
+      width: auto;
+    }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -443,6 +540,7 @@
     .priority-btn.active { background: #ffeaa8; border-color: #e8cb6a; color: #5a4700; font-weight: 700; }
     .choice-wish { margin-top: 8px; width: 100%; min-height: 74px; border: 1px solid var(--border); border-radius: 10px; padding: 10px; resize: vertical; }
     .workorder-box { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fbfcff; display: grid; gap: 10px; }
+    .readiness-box { border: 1px solid #dce5fb; border-radius: 12px; padding: 10px; background: #f7f9ff; }
 
     .overlay {
       position: fixed;
@@ -566,6 +664,7 @@
       }
 
       .verification-grid { grid-template-columns: 1fr; }
+      .insight-grid, .filters-extra { grid-template-columns: 1fr; }
     }
 
     @media (min-width: 761px) {
@@ -601,6 +700,17 @@
         <a href="#projectsSection" class="btn btn-primary">Смотреть проекты</a>
         <a href="#myChoicesSection" class="btn">Мои выборы</a>
         <a href="trainee-test.html" class="btn">Тестирование практикантов</a>
+      </div>
+      <div class="hero-quick-links" aria-label="Быстрые переходы">
+        <a href="#verificationSection" class="quick-link">1. Верификация</a>
+        <a href="#profileSection" class="quick-link">2. Профиль</a>
+        <a href="#projectsSection" class="quick-link">3. Подбор проекта</a>
+        <a href="#myChoicesSection" class="quick-link">4. Наряд</a>
+      </div>
+      <div id="topProgress" class="top-progress" role="status" aria-live="polite">
+        <div><strong id="topProgressTitle">Готовность к выдаче наряда: 0%</strong></div>
+        <div class="progress-track" aria-hidden="true"><div id="topProgressBar" class="progress-bar"></div></div>
+        <div id="topProgressHint" class="small-muted">Начните с верификации и выбора проекта.</div>
       </div>
       <div class="metrics">
         <article class="metric"><strong>14 проектов</strong><span class="muted">Реальные задачи лаборатории</span></article>
@@ -695,6 +805,11 @@
         <button id="saveProfileBtn" class="btn btn-primary" type="button">Сохранить профиль</button>
         <button id="clearProfileBtn" class="btn" type="button">Очистить</button>
       </div>
+      <div class="profile-meter">
+        <strong id="profileQualityTitle">Профиль заполнен на 20%</strong>
+        <div class="progress-track" aria-hidden="true"><div id="profileQualityBar" class="progress-bar"></div></div>
+        <p id="profileQualityHint" class="small-muted" style="margin:0">Заполните ID и email, чтобы повысить качество рекомендаций.</p>
+      </div>
     </section>
 
     <section class="card panel" id="projectsSection">
@@ -737,6 +852,20 @@
           </select>
         </div>
       </div>
+      <div class="filters-extra">
+        <label class="inline-control"><input id="recommendedOnlyCheckbox" type="checkbox" /> Только рекомендуемые</label>
+        <label class="inline-control"><input id="openOnlyCheckbox" type="checkbox" /> Только активный набор</label>
+        <div>
+          <label for="hoursFilter">Максимальная загрузка</label>
+          <select id="hoursFilter">
+            <option>Любая</option>
+            <option>2-4 часа</option>
+            <option>5-8 часов</option>
+            <option>9-12 часов</option>
+            <option>12+ часов</option>
+          </select>
+        </div>
+      </div>
       <div class="filters-actions" style="margin-top:12px">
         <button id="resetFiltersBtn" class="btn" type="button">Сбросить фильтры</button>
       </div>
@@ -750,6 +879,7 @@
           <div id="selectionSummary" class="selection-summary" role="status" aria-live="polite"></div>
         </div>
       </div>
+      <div id="insightGrid" class="insight-grid" aria-label="Аналитика выбора"></div>
 
       <table id="tableView" aria-label="Таблица проектов">
         <thead>
@@ -772,6 +902,10 @@
       <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px">
         <button id="downloadJsonBtn" class="btn" type="button">Скачать выборы в JSON</button>
         <button id="clearChoicesBtn" class="btn" type="button">Очистить выборы</button>
+      </div>
+      <div id="readinessBox" class="readiness-box">
+        <strong>Проверка готовности перед выдачей наряда</strong>
+        <ul id="readinessList" class="check-list"></ul>
       </div>
       <div class="workorder-box">
         <strong>Получение наряда на работу</strong>
@@ -866,12 +1000,13 @@
     const state = {
       viewMode: 'table',
       profile: { userId:'', email:'', level:'Новичок', direction:'Любое направление', hours:'2-4 часа' },
-      filters: { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию' },
+      filters: { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию', recommendedOnly:false, openOnly:false, maxHours:'Любая' },
       interests: {},
       applications: [],
       projectPrefs: {},
       verification: { confirmedTesting: false, publicCode: '' },
       workOrder: { issuedAt: '', sentTo: '' },
+      lastActionAt: '',
       currentProjectId: null
     };
 
@@ -884,7 +1019,8 @@
       applications: 'rgsu_applications',
       projectPrefs: 'rgsu_project_prefs',
       verification: 'rgsu_verification',
-      workOrder: 'rgsu_work_order'
+      workOrder: 'rgsu_work_order',
+      lastActionAt: 'rgsu_last_action_at'
     };
 
     // 4. Утилиты
@@ -906,6 +1042,7 @@
       localStorage.setItem(LS_KEYS.projectPrefs, JSON.stringify(state.projectPrefs));
       localStorage.setItem(LS_KEYS.verification, JSON.stringify(state.verification));
       localStorage.setItem(LS_KEYS.workOrder, JSON.stringify(state.workOrder));
+      localStorage.setItem(LS_KEYS.lastActionAt, state.lastActionAt || '');
     }
 
     function loadState() {
@@ -918,6 +1055,7 @@
         state.projectPrefs = JSON.parse(localStorage.getItem(LS_KEYS.projectPrefs)) || {};
         state.verification = { ...state.verification, ...(JSON.parse(localStorage.getItem(LS_KEYS.verification)) || {}) };
         state.workOrder = { ...state.workOrder, ...(JSON.parse(localStorage.getItem(LS_KEYS.workOrder)) || {}) };
+        state.lastActionAt = localStorage.getItem(LS_KEYS.lastActionAt) || ''; 
       } catch { /* fallback on defaults */ }
 
       const projectIds = new Set(projects.map(p => p.id));
@@ -960,7 +1098,10 @@
         const byDirection = state.filters.direction === 'Все' || p.direction === state.filters.direction;
         const byLevel = state.filters.level === 'Все' || p.level === state.filters.level;
         const byStatus = state.filters.status === 'Все' || p.status === state.filters.status;
-        return bySearch && byDirection && byLevel && byStatus;
+        const byRecommended = !state.filters.recommendedOnly || isRecommended(p);
+        const byOpenOnly = !state.filters.openOnly || ['Набор открыт','Осталось мало мест'].includes(p.status);
+        const byHours = state.filters.maxHours === 'Любая' || hoursRank[p.hours] <= hoursRank[state.filters.maxHours];
+        return bySearch && byDirection && byLevel && byStatus && byRecommended && byOpenOnly && byHours;
       });
 
       list.sort((a,b) => {
@@ -983,6 +1124,25 @@
         strong: Object.values(state.projectPrefs).filter(v => v && v.priority).length,
         applied: selectedIds.filter(id => appliedIds.has(id)).length
       };
+    }
+
+    function getProfileCompleteness() {
+      let score = 20;
+      if ((state.profile.userId || '').trim().length >= 2) score += 20;
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.profile.email || '')) score += 20;
+      if (state.profile.direction && state.profile.direction !== 'Любое направление') score += 20;
+      if (state.profile.hours && state.profile.hours !== '2-4 часа') score += 10;
+      if (state.profile.level === 'Технопарковец') score += 10;
+      return Math.min(score, 100);
+    }
+
+    function getOnboardingProgress() {
+      const verified = isVerificationPassed();
+      const selected = selectedProjectIds().length > 0;
+      const priority = Boolean(getPriorityProjectId());
+      const ready = !validateWorkOrder();
+      const percent = Math.round(((Number(verified) + Number(selected) + Number(priority) + Number(ready)) / 4) * 100);
+      return { verified, selected, priority, ready, percent };
     }
 
     function selectedProjectIds() {
@@ -1011,6 +1171,7 @@
         const pref = ensureProjectPref(id);
         pref.priority = Number(id) === Number(projectId);
       });
+      state.lastActionAt = new Date().toISOString();
       saveState();
       renderAll();
     }
@@ -1314,16 +1475,28 @@
       });
 
       $('searchInput').addEventListener('input', e => { state.filters.search = e.target.value; saveState(); renderAll(); });
-      ['directionFilter','levelFilter','statusFilter','sortFilter'].forEach(id => {
+      ['directionFilter','levelFilter','statusFilter','sortFilter','hoursFilter'].forEach(id => {
         $(id).addEventListener('change', e => {
-          const key = { directionFilter:'direction', levelFilter:'level', statusFilter:'status', sortFilter:'sort' }[id];
+          const key = { directionFilter:'direction', levelFilter:'level', statusFilter:'status', sortFilter:'sort', hoursFilter:'maxHours' }[id];
           state.filters[key] = e.target.value;
           saveState(); renderAll();
         });
       });
 
+      $('recommendedOnlyCheckbox').addEventListener('change', (e) => {
+        state.filters.recommendedOnly = e.target.checked;
+        saveState();
+        renderAll();
+      });
+
+      $('openOnlyCheckbox').addEventListener('change', (e) => {
+        state.filters.openOnly = e.target.checked;
+        saveState();
+        renderAll();
+      });
+
       $('resetFiltersBtn').addEventListener('click', () => {
-        state.filters = { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию' };
+        state.filters = { search:'', direction:'Все', level:'Все', status:'Все', sort:'По названию', recommendedOnly:false, openOnly:false, maxHours:'Любая' };
         saveState(); syncFilters(); renderAll(); showToast('Фильтры сброшены');
       });
 
@@ -1487,6 +1660,32 @@
       $('levelFilter').value = state.filters.level;
       $('statusFilter').value = state.filters.status;
       $('sortFilter').value = state.filters.sort;
+      $('hoursFilter').value = state.filters.maxHours || 'Любая';
+      $('recommendedOnlyCheckbox').checked = Boolean(state.filters.recommendedOnly);
+      $('openOnlyCheckbox').checked = Boolean(state.filters.openOnly);
+    }
+
+
+    function renderInsights(list) {
+      const top = [...list].slice(0, 3);
+      const topText = top.length ? top.map(p => p.title).join(' • ') : 'Нет совпадений';
+      const applied = state.applications.length;
+      const recent = state.lastActionAt ? new Date(state.lastActionAt).toLocaleString('ru-RU') : 'Пока нет действий';
+      $('insightGrid').innerHTML = [
+        `<article class="insight"><strong>Топ-3 совпадения:</strong><br>${escapeHtml(topText)}</article>`,
+        `<article class="insight"><strong>Отправлено заявок:</strong><br>${applied}</article>`,
+        `<article class="insight"><strong>Последнее действие:</strong><br>${escapeHtml(recent)}</article>`
+      ].join('');
+    }
+
+    function renderReadinessChecks() {
+      const checks = [
+        { ok: isVerificationPassed(), text: 'Верификация пройдена' },
+        { ok: selectedProjectIds().length > 0, text: 'Есть выбранные проекты' },
+        { ok: Boolean(getPriorityProjectId()), text: 'Выбран один приоритетный проект' },
+        { ok: !validateWorkOrder(), text: 'Профиль и пожелания заполнены корректно' }
+      ];
+      $('readinessList').innerHTML = checks.map(c => `<li class="${c.ok ? 'ok' : ''}">${c.ok ? '✅' : '•'} ${escapeHtml(c.text)}</li>`).join('');
     }
 
     function renderAll() {
@@ -1499,17 +1698,33 @@
 
       const list = getVisibleProjects();
       const stats = getSelectionStats();
+      const profilePercent = getProfileCompleteness();
+      const onboarding = getOnboardingProgress();
       $('projectsCount').textContent = `Найдено проектов: ${list.length}`;
       $('selectionSummary').textContent = `Выбрано: ${stats.selected} • Приоритетных: ${stats.strong} • С заявкой: ${stats.applied}`;
       $('projectsEmpty').classList.toggle('hidden', list.length !== 0);
       $('downloadJsonBtn').disabled = stats.selected === 0 && state.applications.length === 0;
       $('issueWorkOrderBtn').disabled = !isVerificationPassed();
 
+      $('topProgressTitle').textContent = `Готовность к выдаче наряда: ${onboarding.percent}%`;
+      $('topProgressBar').style.width = `${onboarding.percent}%`;
+      $('topProgressHint').textContent = onboarding.ready
+        ? 'Все условия выполнены: можно формировать наряд.'
+        : 'Завершите шаги онбординга, чтобы открыть финальную выдачу наряда.';
+
+      $('profileQualityTitle').textContent = `Профиль заполнен на ${profilePercent}%`;
+      $('profileQualityBar').style.width = `${profilePercent}%`;
+      $('profileQualityHint').textContent = profilePercent >= 80
+        ? 'Профиль достаточный для точных рекомендаций.'
+        : 'Добавьте email, направление и ID для более точного подбора.';
+
       renderTable(list);
       renderCards(list);
       renderChoices();
       renderVerificationUI();
       renderOnboarding();
+      renderInsights(list);
+      renderReadinessChecks();
     }
 
     // 14. Инициализация
